@@ -7,6 +7,7 @@ from app.extensions import db
 from app.models import Client, Reservation, Vehicule
 from app.models.enums import StatutReservation
 from app.services.availability import is_vehicule_available
+from app.services.invoicing import create_facture_for_reservation
 from app.services.pricing import compute_montant_total
 from app.services.reservation_lifecycle import InvalidTransitionError, apply_statut_transition
 
@@ -26,6 +27,7 @@ def _serialize_reservation(reservation: Reservation) -> dict:
         "montant_total": str(reservation.montant_total),
         "notes": reservation.notes,
         "created_at": reservation.created_at.isoformat(),
+        "facture_id": reservation.facture.id if reservation.facture else None,
     }
 
 
@@ -197,6 +199,9 @@ def change_statut(reservation_id):
         apply_statut_transition(reservation, nouveau_statut)
     except InvalidTransitionError as exc:
         return jsonify({"error": str(exc)}), 409
+
+    if nouveau_statut == StatutReservation.TERMINEE:
+        create_facture_for_reservation(reservation)
 
     db.session.commit()
     return jsonify(_serialize_reservation(reservation))

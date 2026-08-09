@@ -18,6 +18,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = str(BASE_DIR / os.environ.get("UPLOAD_FOLDER", "app/static_uploads"))
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_UPLOAD_MB", 10)) * 1024 * 1024
+    CURRENCY_LABEL = os.environ.get("CURRENCY_LABEL", "MAD")
 
 
 class DevelopmentConfig(Config):
