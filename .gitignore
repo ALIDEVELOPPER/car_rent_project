@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+
+# Flask / SQLite
+backend/instance/*.db
+backend/instance/*.sqlite3
+
+# Env
+.env
+backend/.env
+
+# Uploads de dev (contenu généré, pas le dossier lui-même)
+backend/app/static_uploads/*
+!backend/app/static_uploads/.gitkeep
+
+# OS / éditeurs
+.DS_Store
+.vscode/
+.idea/
+
+# Build desktop
+dist/
+build/
+*.spec
