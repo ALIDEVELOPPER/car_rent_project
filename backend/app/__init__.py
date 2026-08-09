@@ -2,6 +2,7 @@ import os
 
 from flask import Flask
 
+from app.api import register_blueprints
 from app.config import config_by_name
 from app.extensions import db, login_manager, migrate
 from app.models import User
@@ -23,5 +24,7 @@ def create_app(config_name: str | None = None) -> Flask:
     @login_manager.user_loader
     def load_user(user_id: str) -> User | None:
         return db.session.get(User, int(user_id))
+
+    register_blueprints(app)
 
     return app
