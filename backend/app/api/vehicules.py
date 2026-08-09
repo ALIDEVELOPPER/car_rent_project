@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from flask import Blueprint, jsonify, request
@@ -6,6 +7,7 @@ from flask_login import login_required
 from app.extensions import db
 from app.models import Vehicule
 from app.models.enums import Carburant, RoleUser, StatutVehicule, Transmission
+from app.services.availability import is_vehicule_available
 from app.utils.decorators import role_required
 from app.utils.uploads import ALLOWED_IMAGE_EXTENSIONS, UploadError, save_upload
 
@@ -200,3 +202,26 @@ def upload_photo(vehicule_id):
     vehicule.photo_url = relative_path
     db.session.commit()
     return jsonify(_serialize_vehicule(vehicule))
+
+
+@bp.get("/<int:vehicule_id>/disponibilite")
+@login_required
+def check_disponibilite(vehicule_id):
+    vehicule = db.session.get(Vehicule, vehicule_id)
+    if vehicule is None:
+        return jsonify({"error": "Véhicule introuvable"}), 404
+
+    raw_debut = request.args.get("date_debut")
+    raw_fin = request.args.get("date_fin")
+    if not raw_debut or not raw_fin:
+        return jsonify({"error": "Paramètres 'date_debut' et 'date_fin' requis"}), 400
+
+    try:
+        date_debut = date.fromisoformat(raw_debut)
+        date_fin = date.fromisoformat(raw_fin)
+    except ValueError:
+        return jsonify({"error": "Format de date invalide (attendu : AAAA-MM-JJ)"}), 400
+
+    exclude_id = request.args.get("exclude_reservation_id", type=int)
+    disponible = is_vehicule_available(vehicule_id, date_debut, date_fin, exclude_reservation_id=exclude_id)
+    return jsonify({"disponible": disponible})
