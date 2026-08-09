@@ -11,7 +11,7 @@ from app.models import User
 def create_app(config_name: str | None = None) -> Flask:
     config_name = config_name or os.environ.get("FLASK_ENV", "development")
 
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__, instance_relative_config=True, static_folder=None)
     app.config.from_object(config_by_name[config_name])
 
     os.makedirs(app.instance_path, exist_ok=True)
@@ -26,5 +26,13 @@ def create_app(config_name: str | None = None) -> Flask:
         return db.session.get(User, int(user_id))
 
     register_blueprints(app)
+
+    from app.web import bp as web_bp
+
+    app.register_blueprint(web_bp)
+
+    from app.cli import register_cli
+
+    register_cli(app)
 
     return app

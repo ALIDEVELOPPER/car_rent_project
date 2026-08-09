@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion — Agence Location</title>
+  <link rel="stylesheet" href="/static/css/variables.css" />
+  <link rel="stylesheet" href="/static/css/base.css" />
+  <link rel="stylesheet" href="/static/css/components.css" />
+  <script src="/static/js/theme.js"></script>
+  <style>
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+    }
+    .login-card {
+      width: 100%;
+      max-width: 380px;
+    }
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      justify-content: center;
+      margin-bottom: var(--space-6);
+    }
+    .login-brand .logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+    .login-error {
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
+      border-radius: var(--radius-sm);
+      padding: var(--space-3);
+      font-size: var(--text-sm);
+      margin-bottom: var(--space-4);
+    }
+    .theme-toggle-fixed {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page" x-data="loginForm()">
+    <div class="login-card card">
+      <div class="login-brand">
+        <span class="logo-mark">AL</span>
+        <h1 style="font-size: var(--text-lg)">Agence Location</h1>
+      </div>
+
+      <template x-if="error">
+        <div class="login-error" x-text="error"></div>
+      </template>
+
+      <form @submit.prevent="submit">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input class="input" type="email" id="email" x-model="email" required autofocus />
+        </div>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input class="input" type="password" id="password" x-model="motDePasse" required />
+        </div>
+        <button class="btn btn-primary" type="submit" style="width: 100%" :disabled="loading">
+          <span class="spinner" x-show="loading" style="border-top-color: #fff"></span>
+          <span x-text="loading ? 'Connexion...' : 'Se connecter'"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <button class="theme-toggle theme-toggle-fixed" onclick="toggleTheme()" aria-label="Changer de thème">
+    <span id="theme-toggle-icon"></span>
+  </button>
+
+  <script src="/static/vendor/alpinejs/alpine.min.js" defer></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/pages/login.js"></script>
+</body>
+</html>
