@@ -10,8 +10,9 @@ from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from app.extensions import db
-from app.models import Agence, Facture, Reservation
+from app.models import Facture, Reservation
 from app.models.enums import ModePaiement, StatutPaiement
+from app.services.agence import get_or_create_agence
 
 FACTURE_TRANSITIONS: dict[StatutPaiement, set[StatutPaiement]] = {
     StatutPaiement.EN_ATTENTE: {StatutPaiement.PAYEE, StatutPaiement.ANNULEE},
@@ -70,9 +71,7 @@ def apply_paiement_transition(
 
 
 def _get_agence_info() -> dict:
-    agence = db.session.execute(db.select(Agence)).scalars().first()
-    if agence is None:
-        return {"nom": "Mon Agence de Location", "adresse": "", "telephone": "", "email": ""}
+    agence = get_or_create_agence()
     return {
         "nom": agence.nom,
         "adresse": agence.adresse or "",
