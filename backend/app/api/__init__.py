@@ -1,4 +1,8 @@
 def register_blueprints(app):
     from app.api.auth import bp as auth_bp
+    from app.api.clients import bp as clients_bp
+    from app.api.uploads import bp as uploads_bp
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(clients_bp)
+    app.register_blueprint(uploads_bp)
