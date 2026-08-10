@@ -65,7 +65,7 @@
         <div class="login-error" x-text="error"></div>
       </template>
 
-      <form @submit.prevent="submit">
+      <form onsubmit="return false" @submit.prevent="submit">
         <div class="form-group">
           <label for="email">Email</label>
           <input class="input" type="email" id="email" x-model="email" required autofocus />
