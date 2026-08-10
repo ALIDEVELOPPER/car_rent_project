@@ -59,7 +59,7 @@ def list_factures():
         query = query.filter(Facture.numero_facture.ilike(f"%{q}%"))
 
     factures = db.session.execute(query).scalars().all()
-    return jsonify([_serialize_facture(f) for f in factures])
+    return jsonify([_serialize_facture(f, include_details=True) for f in factures])
 
 
 @bp.get("/<int:facture_id>")

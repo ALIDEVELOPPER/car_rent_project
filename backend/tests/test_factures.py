@@ -60,6 +60,15 @@ def test_facture_created_automatically_on_reservation_termination(client, logged
     assert resp.json["vehicule"]["immatriculation"] == "1-A-1"
 
 
+def test_list_factures_includes_client_and_vehicule(client, logged_in_employe):
+    _setup_completed_reservation(client)
+
+    resp = client.get("/api/factures")
+    assert resp.status_code == 200
+    assert resp.json[0]["client"]["nom"] == "Alami"
+    assert resp.json[0]["vehicule"]["immatriculation"] == "1-A-1"
+
+
 def test_list_factures_filter_by_statut(client, logged_in_employe):
     reservation = _setup_completed_reservation(client)
 
