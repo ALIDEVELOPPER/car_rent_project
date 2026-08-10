@@ -84,9 +84,11 @@
                   <td>
                     <span class="badge" :class="statutBadgeClass(v.statut)" x-text="statutLabel(v.statut)"></span>
                   </td>
-                  <td class="flex gap-2">
-                    <button class="btn btn-secondary btn-sm" @click="openEdit(v)">Modifier</button>
-                    <button class="btn btn-danger btn-sm" x-show="isAdmin()" @click="deleteVehicule(v)">Supprimer</button>
+                  <td>
+                    <div class="flex gap-2">
+                      <button class="btn btn-secondary btn-sm" @click="openEdit(v)">Modifier</button>
+                      <button class="btn btn-danger btn-sm" x-show="isAdmin()" @click="deleteVehicule(v)">Supprimer</button>
+                    </div>
                   </td>
                 </tr>
               </template>

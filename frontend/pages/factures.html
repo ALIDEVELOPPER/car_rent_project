@@ -76,18 +76,20 @@
                     <span class="badge" :class="statutBadgeClass(f.statut_paiement)" x-text="statutLabel(f.statut_paiement)"></span>
                     <div class="text-secondary" style="font-size: var(--text-xs)" x-show="f.mode_paiement" x-text="modeLabel(f.mode_paiement)"></div>
                   </td>
-                  <td class="flex gap-2" style="flex-wrap: wrap">
-                    <a class="btn btn-secondary btn-sm" :href="'/api/factures/' + f.id + '/pdf'" target="_blank">PDF</a>
-                    <button class="btn btn-primary btn-sm" x-show="f.statut_paiement === 'en_attente'" @click="openPaiementModal(f)">
-                      Marquer payée
-                    </button>
-                    <button
-                      class="btn btn-danger btn-sm"
-                      x-show="['en_attente', 'payee'].includes(f.statut_paiement)"
-                      @click="annulerFacture(f)"
-                    >
-                      Annuler
-                    </button>
+                  <td>
+                    <div class="flex gap-2" style="flex-wrap: wrap">
+                      <a class="btn btn-secondary btn-sm" :href="'/api/factures/' + f.id + '/pdf'" target="_blank">PDF</a>
+                      <button class="btn btn-primary btn-sm" x-show="f.statut_paiement === 'en_attente'" @click="openPaiementModal(f)">
+                        Marquer payée
+                      </button>
+                      <button
+                        class="btn btn-danger btn-sm"
+                        x-show="['en_attente', 'payee'].includes(f.statut_paiement)"
+                        @click="annulerFacture(f)"
+                      >
+                        Annuler
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </template>

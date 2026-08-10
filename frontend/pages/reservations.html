@@ -67,30 +67,32 @@
                     <span class="badge" :class="statutBadgeClass(r.statut)" x-text="statutLabel(r.statut)"></span>
                     <div class="text-secondary" style="font-size: var(--text-xs)" x-show="r.facture_id" x-text="`Facture #${r.facture_id}`"></div>
                   </td>
-                  <td class="flex gap-2" style="flex-wrap: wrap">
-                    <button class="btn btn-secondary btn-sm" x-show="['en_attente', 'confirmee', 'en_cours'].includes(r.statut)" @click="openEdit(r)">
-                      Modifier
-                    </button>
-                    <button class="btn btn-secondary btn-sm" x-show="r.statut === 'en_attente'" @click="changeStatut(r, 'confirmee')">
-                      Confirmer
-                    </button>
-                    <button
-                      class="btn btn-secondary btn-sm"
-                      x-show="['en_attente', 'confirmee'].includes(r.statut)"
-                      @click="changeStatut(r, 'en_cours')"
-                    >
-                      Démarrer
-                    </button>
-                    <button class="btn btn-primary btn-sm" x-show="r.statut === 'en_cours'" @click="changeStatut(r, 'terminee')">
-                      Terminer
-                    </button>
-                    <button
-                      class="btn btn-danger btn-sm"
-                      x-show="['en_attente', 'confirmee', 'en_cours'].includes(r.statut)"
-                      @click="changeStatut(r, 'annulee')"
-                    >
-                      Annuler
-                    </button>
+                  <td>
+                    <div class="flex gap-2" style="flex-wrap: wrap">
+                      <button class="btn btn-secondary btn-sm" x-show="['en_attente', 'confirmee', 'en_cours'].includes(r.statut)" @click="openEdit(r)">
+                        Modifier
+                      </button>
+                      <button class="btn btn-secondary btn-sm" x-show="r.statut === 'en_attente'" @click="changeStatut(r, 'confirmee')">
+                        Confirmer
+                      </button>
+                      <button
+                        class="btn btn-secondary btn-sm"
+                        x-show="['en_attente', 'confirmee'].includes(r.statut)"
+                        @click="changeStatut(r, 'en_cours')"
+                      >
+                        Démarrer
+                      </button>
+                      <button class="btn btn-primary btn-sm" x-show="r.statut === 'en_cours'" @click="changeStatut(r, 'terminee')">
+                        Terminer
+                      </button>
+                      <button
+                        class="btn btn-danger btn-sm"
+                        x-show="['en_attente', 'confirmee', 'en_cours'].includes(r.statut)"
+                        @click="changeStatut(r, 'annulee')"
+                      >
+                        Annuler
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </template>

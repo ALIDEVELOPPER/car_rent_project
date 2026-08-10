@@ -65,9 +65,11 @@
                     <span class="badge badge-info" x-show="c.numero_piece_identite" x-text="c.numero_piece_identite"></span>
                     <span class="text-secondary" x-show="!c.numero_piece_identite">—</span>
                   </td>
-                  <td class="flex gap-2">
-                    <button class="btn btn-secondary btn-sm" @click="openEdit(c)">Modifier</button>
-                    <button class="btn btn-danger btn-sm" x-show="isAdmin()" @click="deleteClient(c)">Supprimer</button>
+                  <td>
+                    <div class="flex gap-2">
+                      <button class="btn btn-secondary btn-sm" @click="openEdit(c)">Modifier</button>
+                      <button class="btn btn-danger btn-sm" x-show="isAdmin()" @click="deleteClient(c)">Supprimer</button>
+                    </div>
                   </td>
                 </tr>
               </template>
