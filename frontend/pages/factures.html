@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Factures — Agence Location</title>
+  <link rel="stylesheet" href="/static/css/variables.css" />
+  <link rel="stylesheet" href="/static/css/base.css" />
+  <link rel="stylesheet" href="/static/css/components.css" />
+  <script src="/static/js/theme.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1>Factures</h1>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
+          <span id="theme-toggle-icon"></span>
+        </button>
+      </div>
+
+      <div class="page-content" x-data="facturesPage()" x-init="init()">
+        <div class="flex-between mb-6" style="flex-wrap: wrap; gap: var(--space-3)">
+          <div class="flex gap-3">
+            <input
+              class="input"
+              style="max-width: 240px"
+              type="search"
+              placeholder="Rechercher un numéro..."
+              x-model="search"
+              @input="onSearchInput()"
+            />
+            <select class="input" style="max-width: 200px" x-model="statutFilter" @change="loadFactures()">
+              <option value="">Tous les statuts</option>
+              <option value="en_attente">En attente</option>
+              <option value="payee">Payée</option>
+              <option value="annulee">Annulée</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Numéro</th>
+                <th>Client</th>
+                <th>Véhicule</th>
+                <th>Émise le</th>
+                <th>Montant</th>
+                <th>Statut</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-if="loading">
+                <tr>
+                  <td colspan="7"><span class="spinner"></span></td>
+                </tr>
+              </template>
+              <template x-if="!loading && factures.length === 0">
+                <tr>
+                  <td colspan="7" class="empty-state">Aucune facture trouvée.</td>
+                </tr>
+              </template>
+              <template x-for="f in factures" :key="f.id">
+                <tr>
+                  <td x-text="f.numero_facture"></td>
+                  <td x-text="`${f.client.prenom} ${f.client.nom}`"></td>
+                  <td x-text="`${f.vehicule.marque} ${f.vehicule.modele} (${f.vehicule.immatriculation})`"></td>
+                  <td x-text="f.date_emission.slice(0, 10)"></td>
+                  <td x-text="`${f.montant} MAD`"></td>
+                  <td>
+                    <span class="badge" :class="statutBadgeClass(f.statut_paiement)" x-text="statutLabel(f.statut_paiement)"></span>
+                    <div class="text-secondary" style="font-size: var(--text-xs)" x-show="f.mode_paiement" x-text="modeLabel(f.mode_paiement)"></div>
+                  </td>
+                  <td class="flex gap-2" style="flex-wrap: wrap">
+                    <a class="btn btn-secondary btn-sm" :href="'/api/factures/' + f.id + '/pdf'" target="_blank">PDF</a>
+                    <button class="btn btn-primary btn-sm" x-show="f.statut_paiement === 'en_attente'" @click="openPaiementModal(f)">
+                      Marquer payée
+                    </button>
+                    <button
+                      class="btn btn-danger btn-sm"
+                      x-show="['en_attente', 'payee'].includes(f.statut_paiement)"
+                      @click="annulerFacture(f)"
+                    >
+                      Annuler
+                    </button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-overlay" x-show="paiementModalOpen" x-cloak @click.self="closePaiementModal()">
+          <div class="modal" style="max-width: 380px">
+            <div class="modal-header">
+              <h2>Marquer payée</h2>
+              <button class="btn btn-ghost btn-icon" type="button" @click="closePaiementModal()">✕</button>
+            </div>
+
+            <p class="text-secondary mb-4" style="font-size: var(--text-sm)" x-text="payingFacture ? `Facture ${payingFacture.numero_facture} — ${payingFacture.montant} MAD` : ''"></p>
+
+            <template x-if="paiementError">
+              <div
+                style="background: var(--color-danger-bg); color: var(--color-danger); padding: var(--space-3); border-radius: var(--radius-sm); margin-bottom: var(--space-4); font-size: var(--text-sm);"
+                x-text="paiementError"
+              ></div>
+            </template>
+
+            <form @submit.prevent="confirmPaiement()">
+              <div class="form-group">
+                <label>Mode de paiement</label>
+                <select class="input" x-model="modePaiement" required>
+                  <option value="">Sélectionner...</option>
+                  <option value="especes">Espèces</option>
+                  <option value="carte">Carte</option>
+                  <option value="virement">Virement</option>
+                  <option value="cheque">Chèque</option>
+                </select>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" @click="closePaiementModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  <span x-text="saving ? 'Enregistrement...' : 'Confirmer le paiement'"></span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/vendor/alpinejs/alpine.min.js" defer></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/components/sidebar.js"></script>
+  <script src="/static/js/components/toast.js"></script>
+  <script src="/static/js/auth-guard.js"></script>
+  <script src="/static/js/pages/factures.js"></script>
+</body>
+</html>
