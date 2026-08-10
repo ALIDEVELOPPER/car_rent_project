@@ -32,6 +32,7 @@
     const next = effectiveTheme() === "dark" ? "light" : "dark";
     localStorage.setItem(STORAGE_KEY, next);
     applyTheme(next);
+    document.dispatchEvent(new CustomEvent("themechange", { detail: { theme: next } }));
   };
 
   document.addEventListener("DOMContentLoaded", updateToggleIcon);

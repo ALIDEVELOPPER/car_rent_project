@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de bord — Agence Location</title>
+  <link rel="stylesheet" href="/static/css/variables.css" />
+  <link rel="stylesheet" href="/static/css/base.css" />
+  <link rel="stylesheet" href="/static/css/components.css" />
+  <script src="/static/js/theme.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1>Tableau de bord</h1>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
+          <span id="theme-toggle-icon"></span>
+        </button>
+      </div>
+
+      <div class="page-content">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Taux d'occupation</div>
+            <div class="kpi-value" id="kpi-taux-occupation">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Revenus du mois</div>
+            <div class="kpi-value" id="kpi-revenus-mois">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Véhicules disponibles</div>
+            <div class="kpi-value" id="kpi-vehicules-disponibles">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Réservations en cours</div>
+            <div class="kpi-value" id="kpi-reservations-en-cours">—</div>
+          </div>
+        </div>
+
+        <div class="dashboard-charts">
+          <div class="card">
+            <div class="card-title">Revenus par mois</div>
+            <canvas id="chart-revenus" height="120"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-title">Top véhicules loués</div>
+            <div id="top-vehicules-container">
+              <canvas id="chart-top-vehicules" height="120"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/vendor/chartjs/chart.umd.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/components/sidebar.js"></script>
+  <script src="/static/js/auth-guard.js"></script>
+  <script src="/static/js/pages/dashboard.js"></script>
+</body>
+</html>

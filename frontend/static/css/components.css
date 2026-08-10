@@ -509,6 +509,19 @@ tbody tr:hover {
   font-weight: 700;
 }
 
+.dashboard-charts {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .dashboard-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- Utilitaires de mise en page ---------- */
 
 .flex {
