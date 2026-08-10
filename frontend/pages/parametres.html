@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paramètres — Agence Location</title>
+  <link rel="stylesheet" href="/static/css/variables.css" />
+  <link rel="stylesheet" href="/static/css/base.css" />
+  <link rel="stylesheet" href="/static/css/components.css" />
+  <script src="/static/js/theme.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1>Paramètres</h1>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
+          <span id="theme-toggle-icon"></span>
+        </button>
+      </div>
+
+      <div class="page-content" x-data="parametresPage()" x-init="init()">
+        <template x-if="loading">
+          <div class="flex" style="justify-content: center; padding: var(--space-10)"><span class="spinner"></span></div>
+        </template>
+
+        <template x-if="!loading && accessDenied">
+          <div class="empty-state">Cette section est réservée aux administrateurs.</div>
+        </template>
+
+        <template x-if="!loading && !accessDenied">
+          <div>
+            <div class="card mb-6">
+              <div class="card-title">Informations de l'agence</div>
+
+              <template x-if="agenceError">
+                <div
+                  style="background: var(--color-danger-bg); color: var(--color-danger); padding: var(--space-3); border-radius: var(--radius-sm); margin-bottom: var(--space-4); font-size: var(--text-sm);"
+                  x-text="agenceError"
+                ></div>
+              </template>
+
+              <div class="flex gap-4 mb-6" style="align-items: center">
+                <img
+                  x-show="agence && agence.logo_url"
+                  :src="agence ? '/api/uploads/' + agence.logo_url : ''"
+                  style="width: 64px; height: 64px; border-radius: var(--radius-md); object-fit: cover; border: 1px solid var(--color-border)"
+                />
+                <div
+                  x-show="!agence || !agence.logo_url"
+                  style="width: 64px; height: 64px; border-radius: var(--radius-md); background: var(--color-surface-alt); border: 1px solid var(--color-border)"
+                ></div>
+                <div>
+                  <label style="display: block; margin-bottom: var(--space-2)">Logo</label>
+                  <input type="file" accept=".jpg,.jpeg,.png,.webp" @change="uploadLogo($event.target)" />
+                </div>
+              </div>
+
+              <form @submit.prevent="saveAgence()">
+                <div class="form-group">
+                  <label>Nom de l'agence</label>
+                  <input class="input" x-model="agenceForm.nom" required />
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Téléphone</label>
+                    <input class="input" x-model="agenceForm.telephone" />
+                  </div>
+                  <div class="form-group">
+                    <label>Email</label>
+                    <input class="input" type="email" x-model="agenceForm.email" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Adresse</label>
+                  <input class="input" x-model="agenceForm.adresse" />
+                </div>
+                <div class="form-group">
+                  <label>Mentions légales (pied de facture)</label>
+                  <textarea class="input" rows="2" x-model="agenceForm.mentions_legales"></textarea>
+                </div>
+                <div class="flex" style="justify-content: flex-end">
+                  <button type="submit" class="btn btn-primary" :disabled="agenceSaving">
+                    <span x-text="agenceSaving ? 'Enregistrement...' : 'Enregistrer'"></span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="card">
+              <div class="flex-between mb-4">
+                <div class="card-title" style="margin-bottom: 0">Utilisateurs</div>
+                <button class="btn btn-primary btn-sm" @click="openCreateUser()">+ Nouvel utilisateur</button>
+              </div>
+
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nom</th>
+                      <th>Email</th>
+                      <th>Rôle</th>
+                      <th>Statut</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-if="users.length === 0">
+                      <tr>
+                        <td colspan="5" class="empty-state">Aucun utilisateur.</td>
+                      </tr>
+                    </template>
+                    <template x-for="u in users" :key="u.id">
+                      <tr>
+                        <td x-text="u.nom"></td>
+                        <td x-text="u.email"></td>
+                        <td>
+                          <span class="badge" :class="u.role === 'admin' ? 'badge-info' : 'badge-neutral'" x-text="u.role"></span>
+                        </td>
+                        <td>
+                          <span class="badge" :class="u.actif ? 'badge-success' : 'badge-danger'" x-text="u.actif ? 'Actif' : 'Inactif'"></span>
+                        </td>
+                        <td class="flex gap-2" style="flex-wrap: wrap">
+                          <button class="btn btn-secondary btn-sm" @click="openEditUser(u)">Modifier</button>
+                          <button class="btn btn-secondary btn-sm" @click="toggleActif(u)" x-text="u.actif ? 'Désactiver' : 'Activer'"></button>
+                          <button class="btn btn-danger btn-sm" x-show="!isSelf(u)" @click="deleteUser(u)">Supprimer</button>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="modal-overlay" x-show="userModalOpen" x-cloak @click.self="closeUserModal()">
+              <div class="modal">
+                <div class="modal-header">
+                  <h2 x-text="editingUser ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'"></h2>
+                  <button class="btn btn-ghost btn-icon" type="button" @click="closeUserModal()">✕</button>
+                </div>
+
+                <template x-if="userError">
+                  <div
+                    style="background: var(--color-danger-bg); color: var(--color-danger); padding: var(--space-3); border-radius: var(--radius-sm); margin-bottom: var(--space-4); font-size: var(--text-sm);"
+                    x-text="userError"
+                  ></div>
+                </template>
+
+                <form @submit.prevent="submitUserForm()">
+                  <div class="form-group">
+                    <label>Nom</label>
+                    <input class="input" x-model="userForm.nom" required />
+                  </div>
+                  <div class="form-group">
+                    <label>Email</label>
+                    <input class="input" type="email" x-model="userForm.email" required />
+                  </div>
+                  <div class="form-group">
+                    <label>Rôle</label>
+                    <select class="input" x-model="userForm.role">
+                      <option value="employe">Employé</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label x-text="editingUser ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe'"></label>
+                    <input class="input" type="password" x-model="userForm.mot_de_passe" :required="!editingUser" />
+                  </div>
+
+                  <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" @click="closeUserModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary" :disabled="userSaving">
+                      <span x-text="userSaving ? 'Enregistrement...' : 'Enregistrer'"></span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/vendor/alpinejs/alpine.min.js" defer></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/components/sidebar.js"></script>
+  <script src="/static/js/components/toast.js"></script>
+  <script src="/static/js/auth-guard.js"></script>
+  <script src="/static/js/pages/parametres.js"></script>
+</body>
+</html>
