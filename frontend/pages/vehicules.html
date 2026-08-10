@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Véhicules — Agence Location</title>
+  <link rel="stylesheet" href="/static/css/variables.css" />
+  <link rel="stylesheet" href="/static/css/base.css" />
+  <link rel="stylesheet" href="/static/css/components.css" />
+  <script src="/static/js/theme.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <h1>Véhicules</h1>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
+          <span id="theme-toggle-icon"></span>
+        </button>
+      </div>
+
+      <div class="page-content" x-data="vehiculesPage()" x-init="init()">
+        <div class="flex-between mb-6" style="flex-wrap: wrap; gap: var(--space-3)">
+          <div class="flex gap-3">
+            <input
+              class="input"
+              style="max-width: 280px"
+              type="search"
+              placeholder="Rechercher un véhicule..."
+              x-model="search"
+              @input="onSearchInput()"
+            />
+            <select class="input" style="max-width: 200px" x-model="statutFilter" @change="loadVehicules()">
+              <option value="">Tous les statuts</option>
+              <option value="disponible">Disponible</option>
+              <option value="loue">Loué</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="hors_service">Hors service</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" @click="openCreate()">+ Nouveau véhicule</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Véhicule</th>
+                <th>Immatriculation</th>
+                <th>Catégorie</th>
+                <th>Tarif / jour</th>
+                <th>Statut</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-if="loading">
+                <tr>
+                  <td colspan="6"><span class="spinner"></span></td>
+                </tr>
+              </template>
+              <template x-if="!loading && vehicules.length === 0">
+                <tr>
+                  <td colspan="6" class="empty-state">Aucun véhicule trouvé.</td>
+                </tr>
+              </template>
+              <template x-for="v in vehicules" :key="v.id">
+                <tr>
+                  <td>
+                    <div class="flex gap-3" style="align-items: center">
+                      <img
+                        x-show="v.photo_url"
+                        :src="'/api/uploads/' + v.photo_url"
+                        style="width: 40px; height: 40px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0"
+                      />
+                      <span x-text="`${v.marque} ${v.modele}`"></span>
+                    </div>
+                  </td>
+                  <td x-text="v.immatriculation"></td>
+                  <td x-text="v.categorie"></td>
+                  <td x-text="`${v.tarif_jour} MAD`"></td>
+                  <td>
+                    <span class="badge" :class="statutBadgeClass(v.statut)" x-text="statutLabel(v.statut)"></span>
+                  </td>
+                  <td class="flex gap-2">
+                    <button class="btn btn-secondary btn-sm" @click="openEdit(v)">Modifier</button>
+                    <button class="btn btn-danger btn-sm" x-show="isAdmin()" @click="deleteVehicule(v)">Supprimer</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-overlay" x-show="modalOpen" x-cloak @click.self="closeModal()">
+          <div class="modal">
+            <div class="modal-header">
+              <h2 x-text="editing ? 'Modifier le véhicule' : 'Nouveau véhicule'"></h2>
+              <button class="btn btn-ghost btn-icon" type="button" @click="closeModal()">✕</button>
+            </div>
+
+            <template x-if="formError">
+              <div
+                style="background: var(--color-danger-bg); color: var(--color-danger); padding: var(--space-3); border-radius: var(--radius-sm); margin-bottom: var(--space-4); font-size: var(--text-sm);"
+                x-text="formError"
+              ></div>
+            </template>
+
+            <form @submit.prevent="submitForm()">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Marque</label>
+                  <input class="input" x-model="form.marque" required />
+                </div>
+                <div class="form-group">
+                  <label>Modèle</label>
+                  <input class="input" x-model="form.modele" required />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Immatriculation</label>
+                  <input class="input" x-model="form.immatriculation" required />
+                </div>
+                <div class="form-group">
+                  <label>Catégorie</label>
+                  <input class="input" list="categories" x-model="form.categorie" required />
+                  <datalist id="categories">
+                    <option value="citadine"></option>
+                    <option value="berline"></option>
+                    <option value="SUV"></option>
+                    <option value="monospace"></option>
+                    <option value="utilitaire"></option>
+                  </datalist>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Année</label>
+                  <input class="input" type="number" min="1990" max="2100" x-model="form.annee" />
+                </div>
+                <div class="form-group">
+                  <label>Couleur</label>
+                  <input class="input" x-model="form.couleur" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Kilométrage</label>
+                  <input class="input" type="number" min="0" x-model="form.kilometrage" />
+                </div>
+                <div class="form-group">
+                  <label>Tarif journalier (MAD)</label>
+                  <input class="input" type="number" min="0.01" step="0.01" x-model="form.tarif_jour" required />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Carburant</label>
+                  <select class="input" x-model="form.carburant">
+                    <option value="">—</option>
+                    <option value="essence">Essence</option>
+                    <option value="diesel">Diesel</option>
+                    <option value="hybride">Hybride</option>
+                    <option value="electrique">Électrique</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Transmission</label>
+                  <select class="input" x-model="form.transmission">
+                    <option value="">—</option>
+                    <option value="manuelle">Manuelle</option>
+                    <option value="automatique">Automatique</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Statut</label>
+                <select class="input" x-model="form.statut">
+                  <option value="disponible">Disponible</option>
+                  <option value="loue">Loué</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="hors_service">Hors service</option>
+                </select>
+              </div>
+
+              <template x-if="editing">
+                <div class="form-group">
+                  <label>Photo</label>
+                  <div class="flex gap-3" style="align-items: center">
+                    <img
+                      x-show="editing.photo_url"
+                      :src="'/api/uploads/' + editing.photo_url"
+                      style="width: 56px; height: 56px; border-radius: var(--radius-sm); object-fit: cover"
+                    />
+                    <input type="file" accept=".jpg,.jpeg,.png,.webp" @change="uploadPhoto(editing, $event.target)" />
+                  </div>
+                </div>
+              </template>
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" @click="closeModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  <span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/vendor/alpinejs/alpine.min.js" defer></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/components/sidebar.js"></script>
+  <script src="/static/js/components/toast.js"></script>
+  <script src="/static/js/auth-guard.js"></script>
+  <script src="/static/js/pages/vehicules.js"></script>
+</body>
+</html>
