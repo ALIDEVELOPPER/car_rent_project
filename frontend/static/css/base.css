@@ -85,6 +85,10 @@ button {
   outline-offset: 2px;
 }
 
+[x-cloak] {
+  display: none !important;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
