@@ -21,6 +21,16 @@ function loginForm() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
+    const status = await Api.get("/setup/status");
+    if (status.needs_setup) {
+      window.location.href = "/setup";
+      return;
+    }
+  } catch (_) {
+    // en cas d'erreur réseau, on continue vers le formulaire de connexion normal
+  }
+
+  try {
     await Api.get("/auth/me");
     window.location.href = "/";
   } catch (_) {

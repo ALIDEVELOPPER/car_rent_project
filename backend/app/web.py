@@ -9,6 +9,7 @@ bp = Blueprint("web", __name__)
 PAGES = {
     "": "dashboard.html",
     "login": "login.html",
+    "setup": "setup.html",
     "clients": "clients.html",
     "vehicules": "vehicules.html",
     "reservations": "reservations.html",
