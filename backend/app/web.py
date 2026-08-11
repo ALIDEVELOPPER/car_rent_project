@@ -1,8 +1,8 @@
-from pathlib import Path
-
 from flask import Blueprint, abort, send_from_directory
 
-FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
+from app.paths import get_frontend_dir
+
+FRONTEND_DIR = get_frontend_dir()
 
 bp = Blueprint("web", __name__)
 

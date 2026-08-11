@@ -8,6 +8,7 @@ venv/
 # Flask / SQLite
 backend/instance/*.db
 backend/instance/*.sqlite3
+backend/instance/secret_key
 
 # Env
 .env
@@ -22,7 +23,6 @@ backend/app/static_uploads/*
 .vscode/
 .idea/
 
-# Build desktop
+# Build desktop (le .spec PyInstaller est versionné, ce n'est pas un artefact)
 dist/
 build/
-*.spec

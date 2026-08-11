@@ -15,10 +15,12 @@ if sys.platform.startswith("linux") and os.environ.get("XDG_SESSION_TYPE") == "w
 
 import webview
 
-BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
-sys.path.insert(0, str(BACKEND_DIR))
+if not getattr(sys, "frozen", False):
+    BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
+    sys.path.insert(0, str(BACKEND_DIR))
 
 from app import create_app  # noqa: E402
+from app.paths import get_migrations_dir  # noqa: E402
 from flask_migrate import upgrade  # noqa: E402
 
 APP_TITLE = "Agence Location"
@@ -47,7 +49,7 @@ def main() -> None:
     app = create_app("production")
 
     with app.app_context():
-        upgrade(directory=str(BACKEND_DIR / "migrations"))
+        upgrade(directory=str(get_migrations_dir()))
 
     port = find_free_port()
     server_thread = threading.Thread(
