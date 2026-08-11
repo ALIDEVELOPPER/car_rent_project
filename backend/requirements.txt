@@ -5,6 +5,7 @@ Flask-Login>=0.6
 python-dotenv>=1.0
 reportlab>=4.2
 Pillow>=10.4
-pywebview>=5.3
+pywebview[qt5]>=6.2; sys_platform == "linux"
+pywebview>=6.2; sys_platform != "linux"
 pytest>=8.3
 pytest-flask>=1.3

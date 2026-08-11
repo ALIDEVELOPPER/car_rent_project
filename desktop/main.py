@@ -1,0 +1,68 @@
+import logging
+import os
+import socket
+import sys
+import threading
+import time
+import urllib.request
+from pathlib import Path
+
+# Le plugin Qt5 natif Wayland ne compose pas correctement la fenêtre pywebview
+# (fenêtre créée mais jamais affichée) ; XWayland (la couche de compatibilité X11)
+# fonctionne. Doit être posé avant que Qt ne soit initialisé par pywebview.
+if sys.platform.startswith("linux") and os.environ.get("XDG_SESSION_TYPE") == "wayland":
+    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+
+import webview
+
+BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
+sys.path.insert(0, str(BACKEND_DIR))
+
+from app import create_app  # noqa: E402
+from flask_migrate import upgrade  # noqa: E402
+
+APP_TITLE = "Agence Location"
+
+logging.getLogger("werkzeug").setLevel(logging.ERROR)
+
+
+def find_free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def wait_for_server(url: str, timeout: float = 10.0) -> None:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            urllib.request.urlopen(url, timeout=0.5)
+            return
+        except Exception:
+            time.sleep(0.1)
+    raise RuntimeError("Le serveur backend n'a pas démarré à temps")
+
+
+def main() -> None:
+    app = create_app("production")
+
+    with app.app_context():
+        upgrade(directory=str(BACKEND_DIR / "migrations"))
+
+    port = find_free_port()
+    server_thread = threading.Thread(
+        target=app.run,
+        kwargs={"host": "127.0.0.1", "port": port, "debug": False, "use_reloader": False},
+        daemon=True,
+    )
+    server_thread.start()
+
+    url = f"http://127.0.0.1:{port}/"
+    wait_for_server(url)
+
+    webview.create_window(APP_TITLE, url, width=1400, height=900, min_size=(1024, 700))
+    webview.start()
+
+
+if __name__ == "__main__":
+    main()
