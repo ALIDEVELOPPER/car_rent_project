@@ -51,7 +51,15 @@ pyinstaller desktop/agence_location.spec --distpath desktop/dist --workpath desk
 
 Le résultat est dans `desktop/dist/AgenceLocation/` (mode `--onedir` : un dossier à distribuer, pas un seul fichier). Au premier lancement, l'app crée sa base de données, ses uploads et sa clé secrète dans un dossier de données utilisateur (`~/.local/share/AgenceLocation` sur Linux, `%APPDATA%\AgenceLocation` sur Windows, `~/Library/Application Support/AgenceLocation` sur Mac) — jamais dans le dossier d'installation, qui peut être en lecture seule.
 
-Le `.spec` a été écrit et testé sur Linux uniquement. Un exécutable Windows ou Mac doit être construit sur la plateforme cible respective (limitation universelle de PyInstaller), en réutilisant le même `.spec`.
+Le `.spec` a été écrit et testé sur Linux, et est conçu pour fonctionner tel quel sur Windows/Mac (imports cachés conditionnés par `sys.platform`). Un exécutable Windows ou Mac doit être **construit sur la plateforme cible respective** (limitation universelle de PyInstaller — impossible de cross-compiler).
+
+### Build automatique Windows / Mac / Linux via GitHub Actions
+
+Le workflow `.github/workflows/build-desktop.yml` construit les trois exécutables en parallèle sur des runners GitHub (Windows, Mac, Linux), sans avoir besoin de ces machines soi-même :
+
+1. Déclenchement manuel depuis l'onglet **Actions** du dépôt GitHub (bouton "Run workflow"), ou automatiquement en poussant un tag `v*` (ex: `v1.0.0`)
+2. Chaque build est déposé comme **artifact** téléchargeable depuis la page du run (dossier `desktop/dist/AgenceLocation/` de l'OS correspondant)
+3. Ces builds n'ont pas encore été testés en pratique sur Windows/Mac (seul le Linux l'a été de bout en bout) — à valider en lançant l'exécutable téléchargé sur une vraie machine de l'OS concerné avant de le distribuer aux gestionnaires d'agence
 
 ## État du projet
 

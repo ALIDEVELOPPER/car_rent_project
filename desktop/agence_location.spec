@@ -1,10 +1,35 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+import sys
 
 PROJECT_ROOT = os.path.dirname(SPECPATH)
 BACKEND_DIR = os.path.join(PROJECT_ROOT, "backend")
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
 MIGRATIONS_DIR = os.path.join(BACKEND_DIR, "migrations")
+
+# pyinstaller s'exécute nativement sur chaque OS cible (impossible de cross-compiler),
+# donc sys.platform ici reflète toujours le bon système : ce .spec unique sert pour
+# les trois builds (Linux, Windows, Mac) sans modification.
+hiddenimports = [
+    "logging.config",
+    "alembic",
+    "sqlalchemy.dialects.sqlite",
+]
+
+if sys.platform.startswith("linux"):
+    # requirements.txt installe pywebview[qt5] uniquement sur Linux
+    hiddenimports += [
+        "webview.platforms.qt",
+        "webview.platforms.gtk",
+        "PyQt5.QtWebEngineWidgets",
+        "PyQt5.QtWebEngineCore",
+        "PyQt5.QtWebChannel",
+        "PyQt5.QtPrintSupport",
+    ]
+elif sys.platform == "win32":
+    hiddenimports += ["webview.platforms.edgechromium", "webview.platforms.winforms"]
+elif sys.platform == "darwin":
+    hiddenimports += ["webview.platforms.cocoa"]
 
 a = Analysis(
     [os.path.join(SPECPATH, "main.py")],
@@ -14,17 +39,7 @@ a = Analysis(
         (FRONTEND_DIR, "frontend"),
         (MIGRATIONS_DIR, "migrations"),
     ],
-    hiddenimports=[
-        "logging.config",
-        "webview.platforms.qt",
-        "webview.platforms.gtk",
-        "PyQt5.QtWebEngineWidgets",
-        "PyQt5.QtWebEngineCore",
-        "PyQt5.QtWebChannel",
-        "PyQt5.QtPrintSupport",
-        "alembic",
-        "sqlalchemy.dialects.sqlite",
-    ],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

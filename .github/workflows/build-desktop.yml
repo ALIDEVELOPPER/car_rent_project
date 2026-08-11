@@ -1,0 +1,46 @@
+name: Build desktop executables
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact-name: AgenceLocation-windows
+          - os: macos-latest
+            artifact-name: AgenceLocation-macos
+          - os: ubuntu-latest
+            artifact-name: AgenceLocation-linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dépendances système (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libopengl0 libxkbcommon0
+
+      - name: Installer les dépendances Python
+        run: |
+          pip install -r backend/requirements.txt
+          pip install pyinstaller
+
+      - name: Construire l'exécutable
+        run: pyinstaller desktop/agence_location.spec --distpath desktop/dist --workpath desktop/build --noconfirm
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: desktop/dist/AgenceLocation
