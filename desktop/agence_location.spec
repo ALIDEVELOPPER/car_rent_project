@@ -72,3 +72,17 @@ coll = COLLECT(
     upx_exclude=[],
     name="AgenceLocation",
 )
+
+# Sans ce bloc, macOS produit juste un dossier + un binaire brut lançable en
+# terminal, pas une vraie app double-cliquable depuis le Finder.
+if sys.platform == "darwin":
+    app = BUNDLE(
+        coll,
+        name="AgenceLocation.app",
+        icon=None,
+        bundle_identifier="com.agencelocation.desktop",
+        info_plist={
+            "NSHighResolutionCapable": True,
+            "LSBackgroundOnly": False,
+        },
+    )
