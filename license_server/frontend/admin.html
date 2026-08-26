@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Licences — Agence Location</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #d97706;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+    }
+    h1 { font-size: 1.375rem; margin: 0 0 1.5rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1rem; }
+    .toolbar input[type="password"] { flex: 1; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; }
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    button:hover { background: var(--primary-hover); }
+    button.secondary { background: var(--text-secondary); }
+    button.danger { background: var(--danger); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th, td { text-align: left; padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-secondary); font-weight: 600; }
+    .badge { padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-essai { background: #fef3c7; color: var(--warning); }
+    .badge-actif { background: #dcfce7; color: var(--success); }
+    .badge-suspendu { background: #fee2e2; color: var(--danger); }
+    .actions { display: flex; gap: 0.4rem; }
+    .actions button { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+    .empty { color: var(--text-secondary); padding: 1rem 0; }
+    .new-form { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+    .new-form input { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; flex: 1; }
+    .error { color: var(--danger); font-size: 0.875rem; margin-bottom: 1rem; }
+    code { background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div x-data="adminPage()" x-init="init()">
+    <div class="card">
+      <h1>Console des licences</h1>
+
+      <template x-if="!token">
+        <div class="toolbar">
+          <input type="password" placeholder="Token admin" x-model="tokenInput" @keyup.enter="saveToken()" />
+          <button @click="saveToken()">Se connecter</button>
+        </div>
+      </template>
+
+      <template x-if="token">
+        <div>
+          <div class="toolbar">
+            <span style="color: var(--text-secondary); font-size: 0.875rem;" x-text="licences.length + ' licence(s)'"></span>
+            <button class="secondary" @click="logout()">Se déconnecter</button>
+          </div>
+
+          <p x-show="error" class="error" x-text="error"></p>
+
+          <form class="new-form" @submit.prevent="createLicence()">
+            <input type="text" placeholder="Nom du client" x-model="newNomClient" required />
+            <input type="text" placeholder="Code (laisser vide = généré)" x-model="newCode" />
+            <button type="submit">Créer une licence</button>
+          </form>
+
+          <template x-if="licences.length === 0">
+            <p class="empty">Aucune licence pour l'instant.</p>
+          </template>
+
+          <table x-show="licences.length > 0">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Code</th>
+                <th>Statut</th>
+                <th>Essai jusqu'au</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="l in licences" :key="l.id">
+                <tr>
+                  <td x-text="l.nom_client"></td>
+                  <td><code x-text="l.code"></code></td>
+                  <td><span class="badge" :class="'badge-' + l.statut" x-text="l.statut"></span></td>
+                  <td x-text="l.essai_expire_le ? new Date(l.essai_expire_le).toLocaleDateString('fr-FR') : '—'"></td>
+                  <td class="actions">
+                    <button x-show="l.statut !== 'actif'" @click="setStatut(l, 'actif')">Activer</button>
+                    <button x-show="l.statut !== 'suspendu'" class="secondary" @click="setStatut(l, 'suspendu')">Suspendre</button>
+                    <button class="danger" @click="remove(l)">Supprimer</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <script src="/vendor/alpine.min.js" defer></script>
+  <script>
+    function adminPage() {
+      return {
+        token: "",
+        tokenInput: "",
+        licences: [],
+        newNomClient: "",
+        newCode: "",
+        error: "",
+
+        init() {
+          this.token = sessionStorage.getItem("admin_token") || "";
+          if (this.token) this.loadLicences();
+        },
+
+        saveToken() {
+          this.token = this.tokenInput;
+          sessionStorage.setItem("admin_token", this.token);
+          this.loadLicences();
+        },
+
+        logout() {
+          this.token = "";
+          sessionStorage.removeItem("admin_token");
+        },
+
+        async request(method, path, body) {
+          const res = await fetch(path, {
+            method,
+            headers: { "Content-Type": "application/json", "X-Admin-Token": this.token },
+            body: body ? JSON.stringify(body) : undefined,
+          });
+          if (res.status === 401) {
+            this.error = "Token invalide";
+            this.logout();
+            return null;
+          }
+          const data = await res.json().catch(() => null);
+          if (!res.ok) throw new Error((data && data.error) || "Erreur " + res.status);
+          return data;
+        },
+
+        async loadLicences() {
+          this.error = "";
+          try {
+            const data = await this.request("GET", "/admin/licences");
+            if (data) this.licences = data;
+          } catch (err) {
+            this.error = err.message;
+          }
+        },
+
+        async createLicence() {
+          this.error = "";
+          try {
+            await this.request("POST", "/admin/licences", { nom_client: this.newNomClient, code: this.newCode });
+            this.newNomClient = "";
+            this.newCode = "";
+            await this.loadLicences();
+          } catch (err) {
+            this.error = err.message;
+          }
+        },
+
+        async setStatut(licence, statut) {
+          this.error = "";
+          try {
+            await this.request("PATCH", `/admin/licences/${licence.id}`, { statut });
+            await this.loadLicences();
+          } catch (err) {
+            this.error = err.message;
+          }
+        },
+
+        async remove(licence) {
+          if (!confirm(`Supprimer la licence de ${licence.nom_client} ?`)) return;
+          this.error = "";
+          try {
+            await this.request("DELETE", `/admin/licences/${licence.id}`);
+            await this.loadLicences();
+          } catch (err) {
+            this.error = err.message;
+          }
+        },
+      };
+    }
+  </script>
+</body>
+</html>

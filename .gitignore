@@ -9,6 +9,7 @@ venv/
 backend/instance/*.db
 backend/instance/*.sqlite3
 backend/instance/secret_key
+license_server/*.db
 
 # Env
 .env

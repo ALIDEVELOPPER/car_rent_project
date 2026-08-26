@@ -1,11 +1,12 @@
 import os
 
-from flask import Flask
+from flask import Flask, jsonify, redirect, request
 
 from app.api import register_blueprints
 from app.config import config_by_name
 from app.extensions import db, login_manager, migrate
 from app.models import User
+from app.services import licence as licence_service
 
 
 def create_app(config_name: str | None = None) -> Flask:
@@ -34,5 +35,22 @@ def create_app(config_name: str | None = None) -> Flask:
     from app.cli import register_cli
 
     register_cli(app)
+
+    @app.before_request
+    def _enforce_licence():
+        if not app.config.get("LICENCE_ENFORCEMENT_ENABLED"):
+            return None
+
+        path = request.path
+        if path.startswith("/api/licence") or path.startswith("/static/") or path.startswith("/assets/") or path == "/activation":
+            return None
+
+        state = licence_service.get_state(app.config["LICENCE_SERVER_URL"])
+        if not state["blocked"]:
+            return None
+
+        if path.startswith("/api/"):
+            return jsonify({"error": "licence_invalide", "reason": state["reason"]}), 403
+        return redirect("/activation")
 
     return app

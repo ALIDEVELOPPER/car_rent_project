@@ -10,6 +10,7 @@ PAGES = {
     "": "dashboard.html",
     "login": "login.html",
     "setup": "setup.html",
+    "activation": "activation.html",
     "clients": "clients.html",
     "vehicules": "vehicules.html",
     "reservations": "reservations.html",
