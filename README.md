@@ -4,7 +4,7 @@ Application desktop de gestion pour agence de location de voitures : clients, fl
 
 ## Stack
 
-- Backend : Flask + SQLAlchemy (SQLite en dev)
+- Backend : Flask + SQLAlchemy (SQLite en dev, MySQL en production)
 - Frontend : HTML / CSS / JavaScript (Alpine.js) + Chart.js
 - Desktop : pywebview
 - Tests : pytest
@@ -40,6 +40,35 @@ python desktop/main.py
 ```
 
 Sur Linux + session Wayland, si aucune fenêtre n'apparaît, vérifier que le venv est bien activé et que `QT_QPA_PLATFORM=xcb` est appliqué (déjà géré automatiquement par `desktop/main.py`).
+
+## Base de données MySQL
+
+Par défaut l'app utilise SQLite (`backend/instance/app.db`), pratique pour développer sans rien installer. Pour la production, elle bascule sur MySQL simplement en changeant `DATABASE_URL` — aucun autre changement de code n'est nécessaire.
+
+1. Installer MySQL Server et créer une base vide :
+
+   ```sql
+   CREATE DATABASE agence_location CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE USER 'agence_location'@'localhost' IDENTIFIED BY 'un-mot-de-passe-fort';
+   GRANT ALL PRIVILEGES ON agence_location.* TO 'agence_location'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
+
+2. Dans `backend/.env`, remplacer `DATABASE_URL` par :
+
+   ```
+   DATABASE_URL=mysql+pymysql://agence_location:un-mot-de-passe-fort@127.0.0.1:3306/agence_location
+   ```
+
+3. Appliquer les migrations sur la nouvelle base :
+
+   ```bash
+   cd backend
+   flask db upgrade
+   flask create-admin
+   ```
+
+Le driver `PyMySQL` est déjà dans `backend/requirements.txt`.
 
 ## Packaging (exécutable autonome)
 
