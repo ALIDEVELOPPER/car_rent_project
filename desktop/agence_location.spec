@@ -59,8 +59,9 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
+    icon=os.path.join(FRONTEND_DIR, "assets", "logo", "icon.ico"),
 )
 
 coll = COLLECT(
@@ -76,6 +77,9 @@ coll = COLLECT(
 # Sans ce bloc, macOS produit juste un dossier + un binaire brut lançable en
 # terminal, pas une vraie app double-cliquable depuis le Finder.
 if sys.platform == "darwin":
+    # PyInstaller exige un .icns pour BUNDLE (pas le .png/.ico utilisé sur les
+    # autres OS) ; à générer depuis frontend/assets/logo/icon.png sur un Mac
+    # (iconutil ou équivalent) quand on aura une machine pour le tester.
     app = BUNDLE(
         coll,
         name="AgenceLocation.app",

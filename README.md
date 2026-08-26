@@ -78,17 +78,28 @@ pip install pyinstaller
 pyinstaller desktop/agence_location.spec --distpath desktop/dist --workpath desktop/build --noconfirm
 ```
 
-Le résultat est dans `desktop/dist/AgenceLocation/` (mode `--onedir` : un dossier à distribuer, pas un seul fichier). Au premier lancement, l'app crée sa base de données, ses uploads et sa clé secrète dans un dossier de données utilisateur (`~/.local/share/AgenceLocation` sur Linux, `%APPDATA%\AgenceLocation` sur Windows, `~/Library/Application Support/AgenceLocation` sur Mac) — jamais dans le dossier d'installation, qui peut être en lecture seule.
+Le résultat est dans `desktop/dist/AgenceLocation/` (mode `--onedir` : un dossier à distribuer, pas un seul fichier). Au premier lancement, l'app crée sa base de données, ses uploads et sa clé secrète dans un dossier de données utilisateur (`~/.local/share/AgenceLocation` sur Linux, `%APPDATA%\AgenceLocation` sur Windows, `~/Library/Application Support/AgenceLocation` sur Mac) — jamais dans le dossier d'installation, qui peut être en lecture seule. La fenêtre se lance sans console visible (`console=False`), avec l'icône `frontend/assets/logo/icon.ico`.
 
-Le `.spec` a été écrit et testé sur Linux, et est conçu pour fonctionner tel quel sur Windows/Mac (imports cachés conditionnés par `sys.platform`). Un exécutable Windows ou Mac doit être **construit sur la plateforme cible respective** (limitation universelle de PyInstaller — impossible de cross-compiler).
+Le `.spec` a été écrit et testé sur Linux et Windows, et est conçu pour fonctionner tel quel sur Mac (imports cachés conditionnés par `sys.platform`). Un exécutable Windows ou Mac doit être **construit sur la plateforme cible respective** (limitation universelle de PyInstaller — impossible de cross-compiler).
+
+### Installateur Windows (Inno Setup)
+
+Pour distribuer une vraie installation Windows (raccourcis Menu Démarrer/Bureau, entrée de désinstallation dans "Applications et fonctionnalités") plutôt que le dossier brut `--onedir` :
+
+```bash
+# après avoir généré desktop/dist/AgenceLocation/ ci-dessus, et installé Inno Setup 6
+iscc desktop/installer.iss
+```
+
+Produit `desktop/dist/AgenceLocationSetup.exe`. Installation par utilisateur (`PrivilegesRequired=lowest`), pas besoin de droits admin — cohérent avec le fait que les données vivent déjà dans `%APPDATA%\AgenceLocation`. Testé de bout en bout sur Windows (installation, raccourcis, désinstallation propre).
 
 ### Build automatique Windows / Mac / Linux via GitHub Actions
 
 Le workflow `.github/workflows/build-desktop.yml` construit les trois exécutables en parallèle sur des runners GitHub (Windows, Mac, Linux), sans avoir besoin de ces machines soi-même :
 
 1. Déclenchement manuel depuis l'onglet **Actions** du dépôt GitHub (bouton "Run workflow"), ou automatiquement en poussant un tag `v*` (ex: `v1.0.0`)
-2. Chaque build est déposé comme **artifact** téléchargeable depuis la page du run (dossier `desktop/dist/AgenceLocation/` de l'OS correspondant)
-3. Ces builds n'ont pas encore été testés en pratique sur Windows/Mac (seul le Linux l'a été de bout en bout) — à valider en lançant l'exécutable téléchargé sur une vraie machine de l'OS concerné avant de le distribuer aux gestionnaires d'agence
+2. Chaque build est déposé comme **artifact** téléchargeable depuis la page du run (dossier `desktop/dist/AgenceLocation/` de l'OS correspondant ; pour Windows, un second artifact `AgenceLocation-windows-setup` contient l'installateur `AgenceLocationSetup.exe`)
+3. Le build Windows (dossier et installateur) a été testé en pratique de bout en bout sur une vraie machine. Le build Mac reste à valider sur une vraie machine avant distribution — il lui manque aussi une icône `.icns` (voir commentaire dans `agence_location.spec`)
 
 ## État du projet
 

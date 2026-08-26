@@ -44,3 +44,18 @@ jobs:
         with:
           name: ${{ matrix.artifact-name }}
           path: desktop/dist/AgenceLocation
+
+      - name: Installer Inno Setup (Windows)
+        if: runner.os == 'Windows'
+        run: choco install innosetup --no-progress -y
+
+      - name: Construire l'installateur Windows (Inno Setup)
+        if: runner.os == 'Windows'
+        run: ISCC.exe desktop/installer.iss
+        shell: cmd
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: AgenceLocation-windows-setup
+          path: desktop/dist/AgenceLocationSetup.exe
