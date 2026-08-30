@@ -45,7 +45,12 @@ def create_app(config_name: str | None = None) -> Flask:
         if path.startswith("/api/licence") or path.startswith("/static/") or path.startswith("/assets/") or path == "/activation":
             return None
 
-        state = licence_service.get_state(app.config["LICENCE_SERVER_URL"])
+        try:
+            state = licence_service.get_state(app.config["LICENCE_SERVER_URL"])
+        except Exception:  # noqa: BLE001 - un bug de vérif ne doit jamais bloquer un client
+            app.logger.exception("Échec inattendu de la vérification de licence")
+            return None
+
         if not state["blocked"]:
             return None
 

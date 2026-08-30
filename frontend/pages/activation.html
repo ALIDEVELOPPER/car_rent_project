@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Activation — Agence Location</title>
+  <title>Licence — Agence Location</title>
   <link rel="stylesheet" href="/static/css/variables.css" />
   <link rel="stylesheet" href="/static/css/base.css" />
   <link rel="stylesheet" href="/static/css/components.css" />
@@ -16,10 +16,7 @@
       justify-content: center;
       padding: var(--space-4);
     }
-    .login-card {
-      width: 100%;
-      max-width: 420px;
-    }
+    .login-card { width: 100%; max-width: 460px; }
     .login-brand {
       display: flex;
       align-items: center;
@@ -38,31 +35,23 @@
       justify-content: center;
       font-weight: 700;
     }
-    .login-subtitle {
-      text-align: center;
-      color: var(--color-text-secondary);
-      font-size: var(--text-sm);
-      margin-bottom: var(--space-6);
-    }
-    .login-error {
-      background: var(--color-danger-bg);
-      color: var(--color-danger);
-      border-radius: var(--radius-sm);
-      padding: var(--space-3);
-      font-size: var(--text-sm);
-      margin-bottom: var(--space-4);
-    }
     .blocked-message {
       text-align: center;
       color: var(--color-text-secondary);
       font-size: var(--text-sm);
       line-height: 1.6;
+      margin-bottom: var(--space-4);
     }
-    .theme-toggle-fixed {
-      position: fixed;
-      top: var(--space-4);
-      right: var(--space-4);
+    .contact-box {
+      text-align: center;
+      font-weight: 600;
+      background: var(--color-surface-2, var(--color-danger-bg));
+      border-radius: var(--radius-sm);
+      padding: var(--space-3);
+      margin-bottom: var(--space-4);
+      font-size: var(--text-sm);
     }
+    .theme-toggle-fixed { position: fixed; top: var(--space-4); right: var(--space-4); }
   </style>
 </head>
 <body>
@@ -74,35 +63,22 @@
       </div>
 
       <template x-if="checking">
-        <p class="blocked-message">Vérification en cours...</p>
+        <p class="blocked-message">Vérification de la licence en cours…</p>
       </template>
 
-      <template x-if="!checking && needsActivation">
-        <div>
-          <p class="login-subtitle">Entrez le code d'activation fourni à l'achat</p>
-
-          <template x-if="error">
-            <div class="login-error" x-text="error"></div>
-          </template>
-
-          <form @submit.prevent="submit" onsubmit="return false">
-            <div class="form-group">
-              <label for="code">Code d'activation</label>
-              <input class="input" type="text" id="code" x-model="code" required autofocus />
-            </div>
-            <button class="btn btn-primary" type="submit" style="width: 100%" :disabled="loading">
-              <span class="spinner" x-show="loading" style="border-top-color: #fff"></span>
-              <span x-text="loading ? 'Activation...' : 'Activer'"></span>
-            </button>
-          </form>
-        </div>
-      </template>
-
-      <template x-if="!checking && !needsActivation">
+      <template x-if="!checking">
         <div>
           <p class="blocked-message" x-text="blockedMessage"></p>
-          <button class="btn btn-secondary" style="width: 100%; margin-top: var(--space-4)" @click="recheck" :disabled="loading">
-            <span x-text="loading ? 'Vérification...' : 'Réessayer'"></span>
+          <template x-if="contact">
+            <div class="contact-box" x-text="contact"></div>
+          </template>
+          <button
+            class="btn btn-primary"
+            style="width: 100%"
+            @click="recheck"
+            :disabled="loading"
+          >
+            <span x-text="loading ? 'Vérification…' : 'Réessayer'"></span>
           </button>
         </div>
       </template>

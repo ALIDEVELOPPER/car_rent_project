@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Licences — Agence Location</title>
+  <title>Installations — Agence Location</title>
   <style>
     :root {
       --primary: #4f46e5;
@@ -31,11 +31,12 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 1.5rem;
-      max-width: 1000px;
+      max-width: 1200px;
       margin: 0 auto;
     }
-    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1rem; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1rem; flex-wrap: wrap; }
     .toolbar input[type="password"] { flex: 1; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; }
+    input, select { padding: 0.45rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; }
     button {
       background: var(--primary);
       color: #fff;
@@ -48,26 +49,30 @@
     button:hover { background: var(--primary-hover); }
     button.secondary { background: var(--text-secondary); }
     button.danger { background: var(--danger); }
-    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-    th, td { text-align: left; padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--border); }
+    button.success { background: var(--success); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 0.55rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
     th { color: var(--text-secondary); font-weight: 600; }
-    .badge { padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge { padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
     .badge-essai { background: #fef3c7; color: var(--warning); }
     .badge-actif { background: #dcfce7; color: var(--success); }
     .badge-suspendu { background: #fee2e2; color: var(--danger); }
-    .actions { display: flex; gap: 0.4rem; }
-    .actions button { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+    .badge-expire { background: #fee2e2; color: var(--danger); }
+    .actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .actions button { padding: 0.3rem 0.55rem; font-size: 0.72rem; }
     .empty { color: var(--text-secondary); padding: 1rem 0; }
-    .new-form { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
-    .new-form input { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; flex: 1; }
+    .filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .filters input { flex: 1; min-width: 180px; }
     .error { color: var(--danger); font-size: 0.875rem; margin-bottom: 1rem; }
-    code { background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 4px; }
+    .muted { color: var(--text-secondary); font-size: 0.78rem; }
+    code { background: #f1f5f9; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.78rem; }
+    .dup { color: var(--danger); font-weight: 600; }
   </style>
 </head>
 <body>
   <div x-data="adminPage()" x-init="init()">
     <div class="card">
-      <h1>Console des licences</h1>
+      <h1>Installations</h1>
 
       <template x-if="!token">
         <div class="toolbar">
@@ -79,43 +84,74 @@
       <template x-if="token">
         <div>
           <div class="toolbar">
-            <span style="color: var(--text-secondary); font-size: 0.875rem;" x-text="licences.length + ' licence(s)'"></span>
-            <button class="secondary" @click="logout()">Se déconnecter</button>
+            <span class="muted" x-text="summary()"></span>
+            <span>
+              <button class="secondary" @click="load()">Rafraîchir</button>
+              <button class="secondary" @click="logout()">Se déconnecter</button>
+            </span>
           </div>
 
           <p x-show="error" class="error" x-text="error"></p>
 
-          <form class="new-form" @submit.prevent="createLicence()">
-            <input type="text" placeholder="Nom du client" x-model="newNomClient" required />
-            <input type="text" placeholder="Code (laisser vide = généré)" x-model="newCode" />
-            <button type="submit">Créer une licence</button>
-          </form>
+          <div class="filters">
+            <input type="text" placeholder="Rechercher (agence, poste, email)…" x-model="q" @keyup.debounce.400ms="load()" />
+            <select x-model="statut" @change="load()">
+              <option value="">Tous les statuts</option>
+              <option value="essai">Essai</option>
+              <option value="actif">Actif</option>
+              <option value="suspendu">Suspendu</option>
+            </select>
+          </div>
 
-          <template x-if="licences.length === 0">
-            <p class="empty">Aucune licence pour l'instant.</p>
+          <template x-if="rows.length === 0">
+            <p class="empty">Aucune installation.</p>
           </template>
 
-          <table x-show="licences.length > 0">
+          <table x-show="rows.length > 0">
             <thead>
               <tr>
-                <th>Client</th>
-                <th>Code</th>
+                <th>Agence / Poste</th>
                 <th>Statut</th>
-                <th>Essai jusqu'au</th>
+                <th>Essai / Blocage</th>
+                <th>Dernière activité</th>
+                <th>Gestion</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <template x-for="l in licences" :key="l.id">
+              <template x-for="r in rows" :key="r.id">
                 <tr>
-                  <td x-text="l.nom_client"></td>
-                  <td><code x-text="l.code"></code></td>
-                  <td><span class="badge" :class="'badge-' + l.statut" x-text="l.statut"></span></td>
-                  <td x-text="l.essai_expire_le ? new Date(l.essai_expire_le).toLocaleDateString('fr-FR') : '—'"></td>
+                  <td>
+                    <strong x-text="r.nom_agence || '—'"></strong><br />
+                    <span class="muted" x-text="(r.hostname || '?') + ' · ' + (r.os_info || '?')"></span><br />
+                    <span class="muted">fp: <code x-text="shortFp(r.machine_fingerprint)"></code>
+                      <span class="dup" x-show="isDup(r.machine_fingerprint)" title="Même machine sur plusieurs installations">⚠ doublon</span>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" :class="'badge-' + effectiveStatus(r)" x-text="statusLabel(r)"></span>
+                    <br /><span class="muted" x-show="r.statut === 'essai'" x-text="r.jours_essai_restants + ' j restants'"></span>
+                  </td>
+                  <td class="muted">
+                    <span x-show="r.statut === 'essai'">
+                      fin : <span x-text="fmtDate(r.essai_expire_le)"></span><br />
+                      blocage : <span x-text="fmtDate(r.bloque_le)"></span>
+                    </span>
+                    <span x-show="r.statut === 'actif'" x-text="'activé le ' + fmtDate(r.activated_at)"></span>
+                    <span x-show="r.statut === 'suspendu'" x-text="'bloqué le ' + fmtDate(r.suspended_at)"></span>
+                  </td>
+                  <td class="muted" x-text="fmtDateTime(r.last_seen_at)"></td>
+                  <td>
+                    <span class="muted" x-text="r.email_contact || '—'"></span><br />
+                    <span class="muted" x-text="r.plan || ''"></span>
+                    <span class="muted" x-show="r.note" :title="r.note">📝</span>
+                  </td>
                   <td class="actions">
-                    <button x-show="l.statut !== 'actif'" @click="setStatut(l, 'actif')">Activer</button>
-                    <button x-show="l.statut !== 'suspendu'" class="secondary" @click="setStatut(l, 'suspendu')">Suspendre</button>
-                    <button class="danger" @click="remove(l)">Supprimer</button>
+                    <button class="success" x-show="r.statut !== 'actif'" @click="act(r, 'approve')">Approuver</button>
+                    <button class="danger" x-show="r.statut !== 'suspendu'" @click="act(r, 'block')">Bloquer</button>
+                    <button class="secondary" @click="extend(r)">+7 j</button>
+                    <button class="secondary" @click="edit(r)">Éditer</button>
+                    <button class="danger" @click="remove(r)">Suppr.</button>
                   </td>
                 </tr>
               </template>
@@ -132,25 +168,24 @@
       return {
         token: "",
         tokenInput: "",
-        licences: [],
-        newNomClient: "",
-        newCode: "",
+        rows: [],
+        q: "",
+        statut: "",
         error: "",
 
         init() {
           this.token = sessionStorage.getItem("admin_token") || "";
-          if (this.token) this.loadLicences();
+          if (this.token) this.load();
         },
-
         saveToken() {
           this.token = this.tokenInput;
           sessionStorage.setItem("admin_token", this.token);
-          this.loadLicences();
+          this.load();
         },
-
         logout() {
           this.token = "";
           sessionStorage.removeItem("admin_token");
+          this.rows = [];
         },
 
         async request(method, path, body) {
@@ -164,53 +199,87 @@
             this.logout();
             return null;
           }
+          if (res.status === 204) return true;
           const data = await res.json().catch(() => null);
           if (!res.ok) throw new Error((data && data.error) || "Erreur " + res.status);
           return data;
         },
 
-        async loadLicences() {
+        async load() {
           this.error = "";
+          const params = new URLSearchParams();
+          if (this.q) params.set("q", this.q);
+          if (this.statut) params.set("statut", this.statut);
           try {
-            const data = await this.request("GET", "/admin/licences");
-            if (data) this.licences = data;
+            const data = await this.request("GET", "/admin/installations?" + params.toString());
+            if (data) this.rows = data;
           } catch (err) {
             this.error = err.message;
           }
         },
 
-        async createLicence() {
-          this.error = "";
+        async act(row, action) {
+          const verb = action === "approve" ? "approuver" : "bloquer";
+          if (!confirm(`Voulez-vous ${verb} l'installation de « ${row.nom_agence || row.hostname || row.installation_id} » ?`)) return;
           try {
-            await this.request("POST", "/admin/licences", { nom_client: this.newNomClient, code: this.newCode });
-            this.newNomClient = "";
-            this.newCode = "";
-            await this.loadLicences();
-          } catch (err) {
-            this.error = err.message;
-          }
+            await this.request("POST", `/admin/installations/${row.id}/${action}`);
+            await this.load();
+          } catch (err) { this.error = err.message; }
         },
 
-        async setStatut(licence, statut) {
-          this.error = "";
+        async extend(row) {
+          const days = parseInt(prompt("Prolonger l'essai de combien de jours ?", "7"), 10);
+          if (!days || days < 1) return;
           try {
-            await this.request("PATCH", `/admin/licences/${licence.id}`, { statut });
-            await this.loadLicences();
-          } catch (err) {
-            this.error = err.message;
-          }
+            await this.request("POST", `/admin/installations/${row.id}/extend`, { days });
+            await this.load();
+          } catch (err) { this.error = err.message; }
         },
 
-        async remove(licence) {
-          if (!confirm(`Supprimer la licence de ${licence.nom_client} ?`)) return;
-          this.error = "";
+        async edit(row) {
+          const email = prompt("Email de contact :", row.email_contact || "");
+          if (email === null) return;
+          const plan = prompt("Plan (ex. mensuel / annuel) :", row.plan || "");
+          if (plan === null) return;
+          const note = prompt("Note interne :", row.note || "");
+          if (note === null) return;
           try {
-            await this.request("DELETE", `/admin/licences/${licence.id}`);
-            await this.loadLicences();
-          } catch (err) {
-            this.error = err.message;
-          }
+            await this.request("PATCH", `/admin/installations/${row.id}`, {
+              email_contact: email, plan, note,
+            });
+            await this.load();
+          } catch (err) { this.error = err.message; }
         },
+
+        async remove(row) {
+          if (!confirm(`Supprimer définitivement cette installation ? (${row.nom_agence || row.hostname || row.installation_id})`)) return;
+          try {
+            await this.request("DELETE", `/admin/installations/${row.id}`);
+            await this.load();
+          } catch (err) { this.error = err.message; }
+        },
+
+        summary() {
+          const n = this.rows.length;
+          const actifs = this.rows.filter((r) => r.statut === "actif").length;
+          const essais = this.rows.filter((r) => r.statut === "essai").length;
+          const bloques = this.rows.filter((r) => r.statut === "suspendu").length;
+          return `${n} installation(s) — ${actifs} actives · ${essais} en essai · ${bloques} bloquées`;
+        },
+        effectiveStatus(r) {
+          if (r.statut === "essai" && !r.valide) return "expire";
+          return r.statut;
+        },
+        statusLabel(r) {
+          if (r.statut === "essai" && !r.valide) return "essai expiré";
+          return r.statut;
+        },
+        isDup(fp) {
+          return this.rows.filter((r) => r.machine_fingerprint === fp).length > 1;
+        },
+        shortFp(fp) { return (fp || "").slice(0, 10); },
+        fmtDate(v) { return v ? new Date(v).toLocaleDateString("fr-FR") : "—"; },
+        fmtDateTime(v) { return v ? new Date(v).toLocaleString("fr-FR") : "—"; },
       };
     }
   </script>

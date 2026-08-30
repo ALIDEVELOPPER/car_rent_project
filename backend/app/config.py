@@ -46,11 +46,15 @@ class Config:
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_UPLOAD_MB", 10)) * 1024 * 1024
     CURRENCY_LABEL = os.environ.get("CURRENCY_LABEL", "MAD")
 
-    # URL du serveur central de licences (license_server/), utilisée pour l'activation
-    # et la revérification au bout de l'essai. Le verrou n'est actif qu'en ProductionConfig
-    # (l'exécutable packagé) : ni les tests, ni le dev quotidien via `flask run` n'y sont soumis.
+    # URL du serveur central de licences (license_server/), utilisée pour l'enregistrement
+    # et la revérification. Le verrou n'est actif qu'en ProductionConfig (l'exécutable
+    # packagé) : ni les tests, ni le dev quotidien via `flask run` n'y sont soumis.
     LICENCE_SERVER_URL = os.environ.get("LICENCE_SERVER_URL", "http://127.0.0.1:5100")
     LICENCE_ENFORCEMENT_ENABLED = False
+
+    # Coordonnées affichées quand l'essai est terminé / le compte suspendu.
+    CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "elmailoudiali@gmail.com")
+    CONTACT_PHONE = os.environ.get("CONTACT_PHONE", "+212 688 689 228")
 
 
 class DevelopmentConfig(Config):
@@ -68,6 +72,9 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     LICENCE_ENFORCEMENT_ENABLED = True
+    # URL publique du serveur de licences, embarquée dans l'exécutable. Reste
+    # surchargeable par la variable d'environnement LICENCE_SERVER_URL (staging).
+    LICENCE_SERVER_URL = os.environ.get("LICENCE_SERVER_URL", "https://51-170-142-59.sslip.io")
 
 
 config_by_name = {
