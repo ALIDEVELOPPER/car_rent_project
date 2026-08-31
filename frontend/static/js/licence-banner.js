@@ -90,7 +90,15 @@
 
   function start() {
     check(false);
+    // Minuteur : fonctionne quand la fenêtre est au premier plan. Le navigateur
+    // embarqué le ralentit / le suspend en arrière-plan → d'où les 2 filets
+    // ci-dessous, plus le thread de fond côté serveur.
     setInterval(function () { check(true); }, POLL_MS);
+    // Au retour sur la fenêtre : recontrôle immédiat.
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) check(true);
+    });
+    window.addEventListener("focus", function () { check(true); });
   }
 
   if (document.readyState === "loading") {
