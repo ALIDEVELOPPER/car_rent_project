@@ -7,7 +7,7 @@ from flask_login import login_required
 from app.extensions import db
 from app.models import Vehicule
 from app.models.enums import Carburant, RoleUser, StatutVehicule, Transmission
-from app.services.availability import is_vehicule_available
+from app.services.availability import is_vehicule_available, vehicule_reservable
 from app.utils.decorators import role_required
 from app.utils.uploads import ALLOWED_IMAGE_EXTENSIONS, UploadError, save_upload
 
@@ -222,6 +222,9 @@ def check_disponibilite(vehicule_id):
     except ValueError:
         return jsonify({"error": "Format de date invalide (attendu : AAAA-MM-JJ)"}), 400
 
+    if not vehicule_reservable(vehicule):
+        return jsonify({"disponible": False, "raison": "hors_service"})
+
     exclude_id = request.args.get("exclude_reservation_id", type=int)
     disponible = is_vehicule_available(vehicule_id, date_debut, date_fin, exclude_reservation_id=exclude_id)
-    return jsonify({"disponible": disponible})
+    return jsonify({"disponible": disponible, "raison": None if disponible else "dates_indisponibles"})

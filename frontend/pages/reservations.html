@@ -129,7 +129,7 @@
                 <label>Véhicule</label>
                 <select class="input" x-model="form.vehicule_id" required @change="onAvailabilityInputsChanged()">
                   <option value="">Sélectionner un véhicule</option>
-                  <template x-for="v in vehicules" :key="v.id">
+                  <template x-for="v in vehiculesSelectionnables" :key="v.id">
                     <option :value="v.id" x-text="`${v.marque} ${v.modele} (${v.immatriculation}) — ${v.tarif_jour} MAD/j`"></option>
                   </template>
                 </select>

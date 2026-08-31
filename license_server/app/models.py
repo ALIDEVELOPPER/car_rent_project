@@ -7,10 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.extensions import db
 
-# Durée de l'essai gratuit, et jours de grâce après expiration pendant lesquels
+# Durée de l'essai gratuit, et durée de grâce après expiration pendant laquelle
 # l'app cliente fonctionne encore (avec un bandeau d'avertissement) avant blocage.
 TRIAL_DAYS = 7
-GRACE_DAYS = 1
+GRACE = timedelta(hours=1)
 
 
 def utcnow() -> datetime:
@@ -71,8 +71,8 @@ class Installation(db.Model):
 
     @property
     def bloque_le(self) -> datetime:
-        """Date de blocage effectif : fin d'essai + période de grâce."""
-        return self.essai_expire_le + timedelta(days=GRACE_DAYS)
+        """Date de blocage effectif : fin d'essai + période de grâce (1 h)."""
+        return self.essai_expire_le + GRACE
 
     @property
     def est_valide(self) -> bool:

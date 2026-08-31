@@ -27,3 +27,5 @@ backend/app/static_uploads/*
 # Build desktop (le .spec PyInstaller est versionné, ce n'est pas un artefact)
 dist/
 build/
+
+license_server/instance/

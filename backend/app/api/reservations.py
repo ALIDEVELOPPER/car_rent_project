@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 from app.extensions import db
 from app.models import Client, Reservation, Vehicule
 from app.models.enums import StatutReservation
-from app.services.availability import is_vehicule_available
+from app.services.availability import is_vehicule_available, vehicule_reservable
 from app.services.invoicing import create_facture_for_reservation
 from app.services.pricing import compute_montant_total
 from app.services.reservation_lifecycle import InvalidTransitionError, apply_statut_transition
@@ -79,6 +79,9 @@ def create_reservation():
     if vehicule is None:
         return jsonify({"error": "Véhicule introuvable"}), 404
 
+    if not vehicule_reservable(vehicule):
+        return jsonify({"error": "Ce véhicule est en maintenance ou hors service : il ne peut pas être réservé."}), 409
+
     try:
         date_debut = _parse_date(data["date_debut"], "date_debut")
         date_fin = _parse_date(data["date_fin"], "date_fin")
@@ -144,6 +147,8 @@ def update_reservation(reservation_id):
         vehicule = db.session.get(Vehicule, vehicule_id)
         if vehicule is None:
             return jsonify({"error": "Véhicule introuvable"}), 404
+        if not vehicule_reservable(vehicule):
+            return jsonify({"error": "Ce véhicule est en maintenance ou hors service : il ne peut pas être réservé."}), 409
     else:
         vehicule = reservation.vehicule
 

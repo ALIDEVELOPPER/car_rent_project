@@ -15,6 +15,8 @@ def isolated_env(tmp_path, monkeypatch):
     monkeypatch.setattr(machine_id, "get_fingerprint", lambda: "test-fingerprint")
     monkeypatch.setattr(machine_id, "get_hostname", lambda: "PC-TEST")
     monkeypatch.setattr(machine_id, "get_os_info", lambda: "TestOS 1.0")
+    # Réinitialise le drapeau "vérifié au démarrage" (état de module global).
+    monkeypatch.setattr(licence_service, "_process_checked", False)
     return tmp_path
 
 
@@ -152,25 +154,26 @@ def test_trial_confirmed_expired_blocks(monkeypatch):
     assert state["reason"] == "essai_expire"
 
 
-def test_trial_offline_past_grace_but_within_offline_tolerance(monkeypatch):
+def test_trial_offline_within_one_hour_grace_not_blocked(monkeypatch):
     now = licence_service._now()
     _write_cache(
-        essai_expire_le=_iso(now - timedelta(days=2)),
-        bloque_le=_iso(now - timedelta(days=1)),
+        essai_expire_le=_iso(now - timedelta(minutes=20)),
+        bloque_le=_iso(now + timedelta(minutes=40)),  # fin d'essai + 1 h
         last_success_at=_iso(now - timedelta(days=5)),  # dernier contact AVANT expiration
         last_attempt_at=_iso(now),
     )
     monkeypatch.setattr(licence_service, "_heartbeat", lambda url, cache: None)
     state = licence_service.get_state("http://fake")
-    assert state["blocked"] is False  # tolérance hors-ligne (OFFLINE_GRACE_DAYS)
+    assert state["blocked"] is False
+    assert state["reason"] == "essai_grace"
 
 
-def test_trial_offline_past_all_tolerance_blocks(monkeypatch):
+def test_trial_offline_past_one_hour_grace_blocks(monkeypatch):
     now = licence_service._now()
     _write_cache(
-        essai_expire_le=_iso(now - timedelta(days=licence_service.OFFLINE_GRACE_DAYS + 2)),
-        bloque_le=_iso(now - timedelta(days=licence_service.OFFLINE_GRACE_DAYS + 1)),
-        last_success_at=_iso(now - timedelta(days=20)),
+        essai_expire_le=_iso(now - timedelta(hours=3)),
+        bloque_le=_iso(now - timedelta(hours=2)),
+        last_success_at=_iso(now - timedelta(days=20)),  # jamais reconfirmé depuis l'expiration
         last_attempt_at=_iso(now),
     )
     monkeypatch.setattr(licence_service, "_heartbeat", lambda url, cache: None)

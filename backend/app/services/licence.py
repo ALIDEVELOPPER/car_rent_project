@@ -20,15 +20,22 @@ from app.services import machine_id
 
 # Tolérance hors-ligne après expiration de l'essai, si le serveur n'a jamais pu
 # confirmer (PC client sans internet). Au-delà : blocage.
-OFFLINE_GRACE_DAYS = 3
+OFFLINE_GRACE = timedelta(hours=1)
 # Un client "actif" (payé) qui reste hors-ligne trop longtemps doit se
 # reconnecter au moins une fois (anti-abus : payer 1 mois puis rester offline).
 MAX_OFFLINE_ACTIF_DAYS = 30
-# Fréquence de revérification en ligne quand tout va bien.
-RECHECK_INTERVAL = timedelta(hours=24)
+# Fréquence de revérification en ligne quand tout va bien (l'app relance aussi
+# un contrôle à chaque démarrage, et le frontend interroge périodiquement).
+RECHECK_INTERVAL = timedelta(minutes=15)
 # Anti-martèlement : délai minimal entre deux tentatives réseau ratées.
-RETRY_INTERVAL = timedelta(hours=1)
+RETRY_INTERVAL = timedelta(minutes=30)
 REQUEST_TIMEOUT = 6
+
+
+# Vérifié une fois au tout premier appel du process (= à chaque lancement de
+# l'app) : garantit qu'un blocage / une activation décidés par l'éditeur sont
+# pris en compte dès le prochain démarrage, sans attendre RECHECK_INTERVAL.
+_process_checked = False
 
 
 def _now() -> datetime:
@@ -240,7 +247,6 @@ def _verdict(cache: dict) -> dict:
     statut = cache.get("statut")
     now = _effective_now(cache)
     last_success = _parse(cache.get("last_success_at"))
-    days_left = cache.get("jours_essai_restants")
 
     if statut == "suspendu":
         return {"activated": True, "blocked": True, "reason": "suspendu", "cache": cache}
@@ -260,22 +266,19 @@ def _verdict(cache: dict) -> dict:
     if now <= expire:
         return {"activated": True, "blocked": False, "reason": "essai", "cache": cache}
 
-    # Essai expiré : on est dans la fenêtre de grâce jusqu'à `bloque_le`.
-    if bloque is not None and now <= bloque:
+    # Essai expiré : courte fenêtre de grâce jusqu'à `bloque_le`
+    # (fin d'essai + 1 h), en ligne comme hors-ligne.
+    grace_fin = bloque or (expire + OFFLINE_GRACE)
+    if now <= grace_fin:
         return {"activated": True, "blocked": False, "reason": "essai_grace", "cache": cache}
 
-    # Au-delà de la grâce.
-    if cache.get("confirmed_expired"):
-        return {"activated": True, "blocked": True, "reason": "essai_expire", "cache": cache}
-
-    # Jamais reconfirmé depuis l'expiration (hors-ligne) : tolérance supplémentaire.
-    if last_success is not None and last_success >= expire:
-        return {"activated": True, "blocked": True, "reason": "essai_expire", "cache": cache}
-
-    if now <= expire + timedelta(days=OFFLINE_GRACE_DAYS):
-        return {"activated": True, "blocked": False, "reason": "essai_grace", "cache": cache}
-
-    return {"activated": True, "blocked": True, "reason": "verification_impossible", "cache": cache}
+    # Au-delà de la grâce : blocage. Un client qui a payé est passé "actif" et ne
+    # descend jamais jusqu'ici.
+    confirmed = bool(cache.get("confirmed_expired")) or (
+        last_success is not None and last_success >= expire
+    )
+    reason = "essai_expire" if confirmed else "verification_impossible"
+    return {"activated": True, "blocked": True, "reason": reason, "cache": cache}
 
 
 def get_state(licence_server_url: str, force: bool = False) -> dict:
@@ -285,13 +288,25 @@ def get_state(licence_server_url: str, force: bool = False) -> dict:
     fini, période de grâce), 'essai_expire', 'suspendu', 'verification_impossible',
     'reverification_requise', 'connexion_requise' (1er lancement hors-ligne).
     """
+    global _process_checked
+
     cache = _load_cache()
 
     if cache is None or not cache.get("secret"):
         try:
             cache = register(licence_server_url, cache)
+            _process_checked = True
         except requests.RequestException:
             return {"activated": False, "blocked": True, "reason": "connexion_requise", "cache": None}
+
+    # Première vérification du process (= lancement de l'app) : on force un
+    # heartbeat, sauf si une tentative vient d'échouer (respect du back-off,
+    # évite un gel réseau au démarrage quand on est hors-ligne).
+    if not _process_checked:
+        _process_checked = True
+        last_attempt = _parse(cache.get("last_attempt_at"))
+        if last_attempt is None or _now() - last_attempt >= RETRY_INTERVAL:
+            force = True
 
     if _should_refresh(cache, force):
         fresh = _heartbeat(licence_server_url, cache)

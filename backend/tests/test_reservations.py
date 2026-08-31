@@ -65,6 +65,33 @@ def test_create_reservation_success_computes_price(client, logged_in_employe, cl
     assert resp.json["statut"] == "en_attente"
 
 
+@pytest.mark.parametrize("statut", [StatutVehicule.MAINTENANCE, StatutVehicule.HORS_SERVICE])
+def test_create_reservation_refuse_vehicule_indisponible(
+    client, logged_in_employe, client_obj, vehicule, db, statut
+):
+    vehicule.statut = statut
+    db.session.commit()
+
+    resp = _create_reservation(client, client_obj, vehicule)
+    assert resp.status_code == 409
+    assert "maintenance" in resp.json["error"].lower() or "hors service" in resp.json["error"].lower()
+
+
+@pytest.mark.parametrize("statut", [StatutVehicule.MAINTENANCE, StatutVehicule.HORS_SERVICE])
+def test_disponibilite_endpoint_vehicule_hors_service(
+    client, logged_in_employe, vehicule, db, statut
+):
+    vehicule.statut = statut
+    db.session.commit()
+
+    resp = client.get(
+        f"/api/vehicules/{vehicule.id}/disponibilite?date_debut=2026-08-10&date_fin=2026-08-15"
+    )
+    assert resp.status_code == 200
+    assert resp.json["disponible"] is False
+    assert resp.json["raison"] == "hors_service"
+
+
 def test_create_reservation_unknown_client(client, logged_in_employe, vehicule):
     resp = client.post(
         "/api/reservations",

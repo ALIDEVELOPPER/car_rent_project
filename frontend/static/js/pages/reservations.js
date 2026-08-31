@@ -75,6 +75,17 @@ function reservationsPage() {
       this.vehicules = await Api.get("/vehicules");
     },
 
+    // Véhicules proposables à la réservation : on exclut ceux en maintenance /
+    // hors service, mais on garde celui déjà sélectionné (cas d'une réservation
+    // existante dont le véhicule est passé hors service depuis).
+    get vehiculesSelectionnables() {
+      return this.vehicules.filter(
+        (v) =>
+          (v.statut !== "maintenance" && v.statut !== "hors_service") ||
+          String(v.id) === String(this.form.vehicule_id),
+      );
+    },
+
     openCreate() {
       this.editing = null;
       this.form = emptyReservationForm();

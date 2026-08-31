@@ -1,17 +1,34 @@
-// Bandeau non bloquant affiché pendant l'essai gratuit (et pendant la période
-// de grâce une fois l'essai terminé). Le blocage réel est géré côté serveur par
-// le gate Flask (redirection vers /activation).
+// Contrôle de licence côté client, chargé sur toutes les pages authentifiées.
+//
+//  - affiche un bandeau non bloquant pendant l'essai (et la période de grâce) ;
+//  - réinterroge le serveur périodiquement même si l'utilisateur ne navigue pas,
+//    et redirige vers /activation dès que l'accès est bloqué (suspendu, essai
+//    terminé...). Ça évite qu'un client qui laisse la fenêtre ouverte continue
+//    d'utiliser l'app indéfiniment sans payer.
 (function () {
+  var POLL_MS = 5 * 60 * 1000; // 5 min
+
   function frenchDate(iso) {
     if (!iso) return "";
     try {
-      return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+      return new Date(iso).toLocaleString("fr-FR", {
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } catch (e) {
       return "";
     }
   }
 
-  function render(state) {
+  function removeBanner() {
+    var existing = document.getElementById("licence-banner");
+    if (existing) existing.remove();
+  }
+
+  function renderBanner(state) {
+    removeBanner();
     if (!state || state.blocked) return;
     if (state.reason !== "essai" && state.reason !== "essai_grace") return;
 
@@ -35,6 +52,7 @@
     }
 
     var bar = document.createElement("div");
+    bar.id = "licence-banner";
     bar.setAttribute("role", "status");
     bar.style.cssText =
       "position:sticky;top:0;z-index:9999;padding:8px 16px;text-align:center;" +
@@ -54,16 +72,30 @@
     document.body.insertBefore(bar, document.body.firstChild);
   }
 
-  function check() {
-    fetch("/api/licence/status")
+  function apply(state) {
+    if (state && state.blocked) {
+      // Accès révoqué pendant la session : on sort immédiatement.
+      window.location.href = "/activation";
+      return;
+    }
+    renderBanner(state);
+  }
+
+  function check(force) {
+    fetch("/api/licence/status" + (force ? "?force=1" : ""))
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(render)
+      .then(apply)
       .catch(function () {});
   }
 
+  function start() {
+    check(false);
+    setInterval(function () { check(true); }, POLL_MS);
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", check);
+    document.addEventListener("DOMContentLoaded", start);
   } else {
-    check();
+    start();
   }
 })();

@@ -2,7 +2,7 @@ from datetime import date
 
 from app.extensions import db
 from app.models import Reservation
-from app.models.enums import StatutReservation
+from app.models.enums import StatutReservation, StatutVehicule
 
 # Une réservation annulée libère les dates ; toutes les autres les bloquent
 # (y compris "terminée", pour l'intégrité de l'historique — sans effet pratique
@@ -13,6 +13,18 @@ BLOCKING_STATUTS = {
     StatutReservation.EN_COURS,
     StatutReservation.TERMINEE,
 }
+
+# Véhicules en maintenance ou hors service : jamais réservables, quelles que
+# soient les dates. "disponible" et "loué" restent réservables (le contrôle de
+# chevauchement des dates gère la période de location effective).
+STATUTS_VEHICULE_NON_RESERVABLES = {
+    StatutVehicule.MAINTENANCE,
+    StatutVehicule.HORS_SERVICE,
+}
+
+
+def vehicule_reservable(vehicule) -> bool:
+    return vehicule.statut not in STATUTS_VEHICULE_NON_RESERVABLES
 
 
 def is_vehicule_available(
