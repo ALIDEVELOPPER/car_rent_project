@@ -90,95 +90,24 @@
             </div>
 
             <div class="card">
-              <div class="flex-between mb-4">
-                <div class="card-title" style="margin-bottom: 0">Utilisateurs</div>
-                <button class="btn btn-primary btn-sm" @click="openCreateUser()">+ Nouvel utilisateur</button>
-              </div>
-
-              <div class="table-wrapper">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Nom</th>
-                      <th>Email</th>
-                      <th>Rôle</th>
-                      <th>Statut</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <template x-if="users.length === 0">
-                      <tr>
-                        <td colspan="5" class="empty-state">Aucun utilisateur.</td>
-                      </tr>
-                    </template>
-                    <template x-for="u in users" :key="u.id">
-                      <tr>
-                        <td x-text="u.nom"></td>
-                        <td x-text="u.email"></td>
-                        <td>
-                          <span class="badge" :class="u.role === 'admin' ? 'badge-info' : 'badge-neutral'" x-text="u.role"></span>
-                        </td>
-                        <td>
-                          <span class="badge" :class="u.actif ? 'badge-success' : 'badge-danger'" x-text="u.actif ? 'Actif' : 'Inactif'"></span>
-                        </td>
-                        <td>
-                          <div class="flex gap-2" style="flex-wrap: wrap">
-                            <button class="btn btn-secondary btn-sm" @click="openEditUser(u)">Modifier</button>
-                            <button class="btn btn-secondary btn-sm" @click="toggleActif(u)" x-text="u.actif ? 'Désactiver' : 'Activer'"></button>
-                            <button class="btn btn-danger btn-sm" x-show="!isSelf(u)" @click="deleteUser(u)">Supprimer</button>
-                          </div>
-                        </td>
-                      </tr>
-                    </template>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="modal-overlay" x-show="userModalOpen" x-cloak @click.self="closeUserModal()">
-              <div class="modal">
-                <div class="modal-header">
-                  <h2 x-text="editingUser ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'"></h2>
-                  <button class="btn btn-ghost btn-icon" type="button" @click="closeUserModal()">✕</button>
+              <div class="card-title">Mot de passe</div>
+              <template x-if="passwordError">
+                <div
+                  style="background: var(--color-danger-bg); color: var(--color-danger); padding: var(--space-3); border-radius: var(--radius-sm); margin-bottom: var(--space-4); font-size: var(--text-sm);"
+                  x-text="passwordError"
+                ></div>
+              </template>
+              <form @submit.prevent="changePassword()">
+                <div class="form-group">
+                  <label>Nouveau mot de passe</label>
+                  <input class="input" type="password" x-model="passwordForm.mot_de_passe" minlength="8" required />
                 </div>
-
-                <template x-if="userError">
-                  <div
-                    style="background: var(--color-danger-bg); color: var(--color-danger); padding: var(--space-3); border-radius: var(--radius-sm); margin-bottom: var(--space-4); font-size: var(--text-sm);"
-                    x-text="userError"
-                  ></div>
-                </template>
-
-                <form @submit.prevent="submitUserForm()">
-                  <div class="form-group">
-                    <label>Nom</label>
-                    <input class="input" x-model="userForm.nom" required />
-                  </div>
-                  <div class="form-group">
-                    <label>Email</label>
-                    <input class="input" type="email" x-model="userForm.email" required />
-                  </div>
-                  <div class="form-group">
-                    <label>Rôle</label>
-                    <select class="input" x-model="userForm.role">
-                      <option value="employe">Employé</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label x-text="editingUser ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe'"></label>
-                    <input class="input" type="password" x-model="userForm.mot_de_passe" :required="!editingUser" />
-                  </div>
-
-                  <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" @click="closeUserModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary" :disabled="userSaving">
-                      <span x-text="userSaving ? 'Enregistrement...' : 'Enregistrer'"></span>
-                    </button>
-                  </div>
-                </form>
-              </div>
+                <div class="flex" style="justify-content: flex-end">
+                  <button type="submit" class="btn btn-primary" :disabled="passwordSaving">
+                    <span x-text="passwordSaving ? 'Enregistrement...' : 'Changer le mot de passe'"></span>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </template>
