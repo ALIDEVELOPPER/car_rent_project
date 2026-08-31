@@ -28,6 +28,33 @@ APP_TITLE = "Agence Location"
 logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
 
+class DesktopApi:
+    """Pont JS -> Python. Le navigateur embarqué (WebView2 / WebKit) ne gère pas
+    de façon fiable les téléchargements de fichiers ; on passe donc le contenu
+    (encodé base64) depuis le JS et on l'enregistre via une vraie boîte de
+    dialogue « Enregistrer sous »."""
+
+    def save_file(self, b64_content: str, suggested_name: str) -> dict:
+        import base64
+
+        try:
+            windows = webview.windows
+            window = windows[0] if windows else None
+            if window is None:
+                return {"ok": False, "error": "Fenêtre indisponible"}
+
+            result = window.create_file_dialog(webview.SAVE_DIALOG, save_filename=suggested_name)
+            if not result:
+                return {"ok": False, "cancelled": True}
+
+            path = result[0] if isinstance(result, (list, tuple)) else result
+            with open(path, "wb") as fh:
+                fh.write(base64.b64decode(b64_content))
+            return {"ok": True, "path": str(path)}
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": str(exc)}
+
+
 def find_free_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
@@ -62,7 +89,9 @@ def main() -> None:
     url = f"http://127.0.0.1:{port}/"
     wait_for_server(url)
 
-    webview.create_window(APP_TITLE, url, width=1400, height=900, min_size=(1024, 700))
+    webview.create_window(
+        APP_TITLE, url, width=1400, height=900, min_size=(1024, 700), js_api=DesktopApi()
+    )
     webview.start()
 
 
