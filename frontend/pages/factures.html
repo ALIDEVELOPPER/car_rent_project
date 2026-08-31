@@ -78,7 +78,9 @@
                   </td>
                   <td>
                     <div class="flex gap-2" style="flex-wrap: wrap">
-                      <a class="btn btn-secondary btn-sm" :href="'/api/factures/' + f.id + '/pdf'" target="_blank">PDF</a>
+                      <button class="btn btn-secondary btn-sm" @click="downloadPdf(f)" :disabled="pdfLoadingId === f.id">
+                        <span x-text="pdfLoadingId === f.id ? 'PDF…' : 'PDF'"></span>
+                      </button>
                       <button class="btn btn-primary btn-sm" x-show="f.statut_paiement === 'en_attente'" @click="openPaiementModal(f)">
                         Marquer payée
                       </button>

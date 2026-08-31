@@ -30,6 +30,7 @@ function facturesPage() {
     paiementError: "",
     saving: false,
     currentUser: null,
+    pdfLoadingId: null,
 
     async init() {
       this.currentUser = await requireAuth("factures");
@@ -96,6 +97,43 @@ function facturesPage() {
         this.paiementError = err.message;
       } finally {
         this.saving = false;
+      }
+    },
+
+    // Téléchargement du PDF : on récupère le fichier en blob puis on déclenche
+    // un enregistrement local. Un simple lien target="_blank" ne fonctionne pas
+    // dans la fenêtre pywebview (pas d'onglets), d'où cette méthode.
+    async downloadPdf(facture) {
+      if (this.pdfLoadingId) return;
+      this.pdfLoadingId = facture.id;
+      try {
+        const res = await fetch(`/api/factures/${facture.id}/pdf`);
+        if (res.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+        if (!res.ok) {
+          let msg = `Erreur ${res.status}`;
+          try {
+            const d = await res.json();
+            if (d && d.error) msg = d.error;
+          } catch (e) {}
+          showToast(msg, "error");
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${facture.numero_facture}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      } catch (err) {
+        showToast("Impossible de télécharger le PDF", "error");
+      } finally {
+        this.pdfLoadingId = null;
       }
     },
 

@@ -118,6 +118,6 @@ def download_pdf(facture_id):
     return send_from_directory(
         current_app.config["UPLOAD_FOLDER"],
         relative_path,
-        as_attachment=False,
+        as_attachment=True,
         download_name=f"{facture.numero_facture}.pdf",
     )
