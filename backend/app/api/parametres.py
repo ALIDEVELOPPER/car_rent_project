@@ -23,6 +23,7 @@ def _serialize_agence(agence: Agence) -> dict:
         "email": agence.email,
         "logo_url": agence.logo_url,
         "mentions_legales": agence.mentions_legales,
+        "conditions_contrat": agence.conditions_contrat,
     }
 
 
@@ -41,7 +42,7 @@ def update_agence():
     if "nom" in data and not data["nom"]:
         return jsonify({"error": "Le nom de l'agence ne peut pas être vide"}), 400
 
-    for field in ("nom", "adresse", "telephone", "email", "mentions_legales"):
+    for field in ("nom", "adresse", "telephone", "email", "mentions_legales", "conditions_contrat"):
         if field in data:
             setattr(agence, field, data[field])
 

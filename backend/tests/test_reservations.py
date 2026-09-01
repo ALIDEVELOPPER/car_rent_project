@@ -63,6 +63,46 @@ def test_create_reservation_success_computes_price(client, logged_in_employe, cl
     assert resp.json["montant_total"] == "1500.00"
     assert resp.json["prix_jour_applique"] == "300.00"
     assert resp.json["statut"] == "en_attente"
+    assert resp.json["caution"] == "0.00"
+
+
+def test_create_reservation_with_caution_and_lieu(client, logged_in_employe, client_obj, vehicule):
+    resp = _create_reservation(
+        client, client_obj, vehicule, caution="2500", lieu_prise_en_charge="Aéroport"
+    )
+    assert resp.status_code == 201
+    assert resp.json["caution"] == "2500.00"
+    assert resp.json["lieu_prise_en_charge"] == "Aéroport"
+
+
+def test_create_reservation_negative_caution_rejected(client, logged_in_employe, client_obj, vehicule):
+    resp = _create_reservation(client, client_obj, vehicule, caution="-10")
+    assert resp.status_code == 400
+
+
+def test_contrat_pdf_download(client, logged_in_employe, client_obj, vehicule):
+    created = _create_reservation(client, client_obj, vehicule).json
+    resp = client.get(f"/api/reservations/{created['id']}/contrat/pdf")
+    assert resp.status_code == 200
+    assert resp.mimetype == "application/pdf"
+    assert resp.data[:5] == b"%PDF-"
+
+
+def test_contrat_pdf_requires_login(client):
+    resp = client.get("/api/reservations/1/contrat/pdf")
+    assert resp.status_code == 401
+
+
+def test_contrat_pdf_404_unknown(client, logged_in_employe):
+    resp = client.get("/api/reservations/9999/contrat/pdf")
+    assert resp.status_code == 404
+
+
+def test_contrat_pdf_409_for_cancelled(client, logged_in_employe, client_obj, vehicule):
+    created = _create_reservation(client, client_obj, vehicule).json
+    client.patch(f"/api/reservations/{created['id']}/statut", json={"statut": "annulee"})
+    resp = client.get(f"/api/reservations/{created['id']}/contrat/pdf")
+    assert resp.status_code == 409
 
 
 @pytest.mark.parametrize("statut", [StatutVehicule.MAINTENANCE, StatutVehicule.HORS_SERVICE])

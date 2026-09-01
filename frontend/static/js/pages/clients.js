@@ -8,6 +8,8 @@ function emptyClientForm() {
     date_naissance: "",
     type_piece_identite: "",
     numero_piece_identite: "",
+    numero_permis: "",
+    date_delivrance_permis: "",
   };
 }
 
@@ -68,6 +70,8 @@ function clientsPage() {
         date_naissance: client.date_naissance || "",
         type_piece_identite: client.type_piece_identite || "",
         numero_piece_identite: client.numero_piece_identite || "",
+        numero_permis: client.numero_permis || "",
+        date_delivrance_permis: client.date_delivrance_permis || "",
       };
       this.formError = "";
       this.modalOpen = true;
@@ -83,6 +87,7 @@ function clientsPage() {
       const payload = { ...this.form };
       payload.date_naissance = payload.date_naissance || null;
       payload.type_piece_identite = payload.type_piece_identite || null;
+      payload.date_delivrance_permis = payload.date_delivrance_permis || null;
 
       try {
         if (this.editing) {

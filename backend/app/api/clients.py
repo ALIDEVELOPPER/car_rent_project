@@ -12,7 +12,10 @@ from app.utils.uploads import UploadError, save_upload
 bp = Blueprint("clients", __name__, url_prefix="/api/clients")
 
 REQUIRED_FIELDS = ("nom", "prenom", "telephone")
-EDITABLE_FIELDS = ("nom", "prenom", "telephone", "email", "adresse", "numero_piece_identite")
+EDITABLE_FIELDS = (
+    "nom", "prenom", "telephone", "email", "adresse",
+    "numero_piece_identite", "numero_permis",
+)
 
 
 def _serialize_client(client: Client, include_reservations: bool = False) -> dict:
@@ -26,6 +29,8 @@ def _serialize_client(client: Client, include_reservations: bool = False) -> dic
         "date_naissance": client.date_naissance.isoformat() if client.date_naissance else None,
         "type_piece_identite": client.type_piece_identite.value if client.type_piece_identite else None,
         "numero_piece_identite": client.numero_piece_identite,
+        "numero_permis": client.numero_permis,
+        "date_delivrance_permis": client.date_delivrance_permis.isoformat() if client.date_delivrance_permis else None,
         "document_identite_url": client.document_identite_url,
         "permis_url": client.permis_url,
         "created_at": client.created_at.isoformat(),
@@ -53,6 +58,10 @@ def _apply_client_fields(client: Client, data: dict) -> None:
     if "date_naissance" in data:
         raw = data["date_naissance"]
         client.date_naissance = date.fromisoformat(raw) if raw else None
+
+    if "date_delivrance_permis" in data:
+        raw = data["date_delivrance_permis"]
+        client.date_delivrance_permis = date.fromisoformat(raw) if raw else None
 
     if "type_piece_identite" in data:
         raw = data["type_piece_identite"]

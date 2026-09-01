@@ -57,6 +57,18 @@ def test_update_agence_success(client, logged_in_admin):
     assert resp.json["nom"] == "Agence Atlas Car"
 
 
+def test_update_agence_conditions_contrat(client, logged_in_admin):
+    resp = client.put(
+        "/api/parametres/agence",
+        json={"nom": "Agence Atlas Car", "conditions_contrat": "1. Clause A\n2. Clause B"},
+    )
+    assert resp.status_code == 200
+    assert resp.json["conditions_contrat"] == "1. Clause A\n2. Clause B"
+
+    resp = client.get("/api/parametres/agence")
+    assert resp.json["conditions_contrat"] == "1. Clause A\n2. Clause B"
+
+
 def test_update_agence_empty_nom_rejected(client, logged_in_admin):
     resp = client.put("/api/parametres/agence", json={"nom": ""})
     assert resp.status_code == 400

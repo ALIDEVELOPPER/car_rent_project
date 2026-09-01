@@ -134,6 +134,16 @@
                 <label>Numéro de pièce d'identité</label>
                 <input class="input" x-model="form.numero_piece_identite" />
               </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Numéro de permis de conduire</label>
+                  <input class="input" x-model="form.numero_permis" />
+                </div>
+                <div class="form-group">
+                  <label>Permis délivré le</label>
+                  <input class="input" type="date" x-model="form.date_delivrance_permis" />
+                </div>
+              </div>
 
               <template x-if="editing">
                 <div class="form-group">

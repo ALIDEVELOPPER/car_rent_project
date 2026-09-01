@@ -15,6 +15,7 @@ class Agence(db.Model):
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     logo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     mentions_legales: Mapped[str | None] = mapped_column(Text, nullable=True)
+    conditions_contrat: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
         return f"<Agence {self.nom}>"

@@ -81,6 +81,10 @@
                   <label>Mentions légales (pied de facture)</label>
                   <textarea class="input" rows="2" x-model="agenceForm.mentions_legales"></textarea>
                 </div>
+                <div class="form-group">
+                  <label>Conditions générales du contrat de location</label>
+                  <textarea class="input" rows="6" x-model="agenceForm.conditions_contrat" placeholder="Laisser vide pour utiliser le texte par défaut. Une clause par ligne."></textarea>
+                </div>
                 <div class="flex" style="justify-content: flex-end">
                   <button type="submit" class="btn btn-primary" :disabled="agenceSaving">
                     <span x-text="agenceSaving ? 'Enregistrement...' : 'Enregistrer'"></span>

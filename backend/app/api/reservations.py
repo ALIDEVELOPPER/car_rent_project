@@ -1,12 +1,15 @@
+import io
 from datetime import date
+from decimal import Decimal, InvalidOperation
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from flask_login import current_user, login_required
 
 from app.extensions import db
 from app.models import Client, Reservation, Vehicule
 from app.models.enums import StatutReservation
 from app.services.availability import is_vehicule_available, vehicule_reservable
+from app.services.contract import contrat_disponible, render_contrat_pdf
 from app.services.invoicing import create_facture_for_reservation
 from app.services.pricing import compute_montant_total
 from app.services.reservation_lifecycle import InvalidTransitionError, apply_statut_transition
@@ -25,10 +28,24 @@ def _serialize_reservation(reservation: Reservation) -> dict:
         "statut": reservation.statut.value,
         "prix_jour_applique": str(reservation.prix_jour_applique),
         "montant_total": str(reservation.montant_total),
+        "caution": str(reservation.caution),
+        "lieu_prise_en_charge": reservation.lieu_prise_en_charge,
         "notes": reservation.notes,
         "created_at": reservation.created_at.isoformat(),
         "facture_id": reservation.facture.id if reservation.facture else None,
     }
+
+
+def _parse_caution(raw) -> Decimal:
+    if raw in (None, ""):
+        return Decimal("0")
+    try:
+        value = Decimal(str(raw))
+    except (InvalidOperation, TypeError):
+        raise ValueError(f"Caution invalide : {raw!r}") from None
+    if value < 0:
+        raise ValueError("La caution ne peut pas être négative")
+    return value
 
 
 def _parse_date(raw, field_name: str) -> date:
@@ -86,6 +103,7 @@ def create_reservation():
         date_debut = _parse_date(data["date_debut"], "date_debut")
         date_fin = _parse_date(data["date_fin"], "date_fin")
         montant_total = compute_montant_total(vehicule.tarif_jour, date_debut, date_fin)
+        caution = _parse_caution(data.get("caution"))
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
@@ -100,6 +118,8 @@ def create_reservation():
         date_fin=date_fin,
         prix_jour_applique=vehicule.tarif_jour,
         montant_total=montant_total,
+        caution=caution,
+        lieu_prise_en_charge=(data.get("lieu_prise_en_charge") or None),
         notes=data.get("notes"),
     )
     db.session.add(reservation)
@@ -179,6 +199,15 @@ def update_reservation(reservation_id):
     if "notes" in data:
         reservation.notes = data["notes"]
 
+    if "lieu_prise_en_charge" in data:
+        reservation.lieu_prise_en_charge = data["lieu_prise_en_charge"] or None
+
+    if "caution" in data:
+        try:
+            reservation.caution = _parse_caution(data["caution"])
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+
     db.session.commit()
     return jsonify(_serialize_reservation(reservation))
 
@@ -210,3 +239,22 @@ def change_statut(reservation_id):
 
     db.session.commit()
     return jsonify(_serialize_reservation(reservation))
+
+
+@bp.get("/<int:reservation_id>/contrat/pdf")
+@login_required
+def download_contrat(reservation_id):
+    reservation = db.session.get(Reservation, reservation_id)
+    if reservation is None:
+        return jsonify({"error": "Réservation introuvable"}), 404
+
+    if not contrat_disponible(reservation):
+        return jsonify({"error": "Aucun contrat pour une réservation annulée"}), 409
+
+    pdf_bytes = render_contrat_pdf(reservation)
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"contrat-{reservation.id:05d}.pdf",
+    )

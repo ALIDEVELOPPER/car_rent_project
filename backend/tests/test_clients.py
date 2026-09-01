@@ -37,6 +37,24 @@ def _create_client(client, **overrides):
     return resp.json
 
 
+def test_client_permis_fields_roundtrip(client, logged_in_employe):
+    created = _create_client(
+        client,
+        numero_permis="12/345678",
+        date_delivrance_permis="2016-04-20",
+    )
+    assert created["numero_permis"] == "12/345678"
+    assert created["date_delivrance_permis"] == "2016-04-20"
+
+    resp = client.put(
+        f"/api/clients/{created['id']}",
+        json={"numero_permis": "99/000", "date_delivrance_permis": None},
+    )
+    assert resp.status_code == 200
+    assert resp.json["numero_permis"] == "99/000"
+    assert resp.json["date_delivrance_permis"] is None
+
+
 def test_create_client_requires_login(client):
     resp = client.post(
         "/api/clients", json={"nom": "Alami", "prenom": "Yassine", "telephone": "0600000000"}

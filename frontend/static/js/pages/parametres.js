@@ -1,5 +1,5 @@
 function emptyAgenceForm() {
-  return { nom: "", adresse: "", telephone: "", email: "", mentions_legales: "" };
+  return { nom: "", adresse: "", telephone: "", email: "", mentions_legales: "", conditions_contrat: "" };
 }
 
 function parametresPage() {
@@ -37,6 +37,7 @@ function parametresPage() {
           telephone: this.agence.telephone || "",
           email: this.agence.email || "",
           mentions_legales: this.agence.mentions_legales || "",
+          conditions_contrat: this.agence.conditions_contrat || "",
         };
       } catch (err) {
         showToast(err.message, "error");

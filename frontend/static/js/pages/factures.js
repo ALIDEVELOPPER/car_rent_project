@@ -17,15 +17,6 @@ const MODE_PAIEMENT_LABELS = {
   cheque: "Chèque",
 };
 
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",", 2)[1] || "");
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 function facturesPage() {
   return {
     factures: [],
@@ -116,41 +107,12 @@ function facturesPage() {
       if (this.pdfLoadingId) return;
       this.pdfLoadingId = facture.id;
       try {
-        const res = await fetch(`/api/factures/${facture.id}/pdf`);
-        if (res.status === 401) {
-          window.location.href = "/login";
-          return;
-        }
-        if (!res.ok) {
-          let msg = `Erreur ${res.status}`;
-          try {
-            const d = await res.json();
-            if (d && d.error) msg = d.error;
-          } catch (e) {}
-          showToast(msg, "error");
-          return;
-        }
-        const blob = await res.blob();
-        const filename = `${facture.numero_facture}.pdf`;
-
-        // App desktop (pywebview) : boîte de dialogue « Enregistrer sous » native.
-        if (window.pywebview && window.pywebview.api && window.pywebview.api.save_file) {
-          const b64 = await blobToBase64(blob);
-          const result = await window.pywebview.api.save_file(b64, filename);
-          if (result && result.ok) showToast("PDF enregistré");
-          else if (result && result.error) showToast("Échec de l'enregistrement : " + result.error, "error");
-          return;
-        }
-
-        // Navigateur : téléchargement classique.
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        const result = await downloadAuthed(
+          `/api/factures/${facture.id}/pdf`,
+          `${facture.numero_facture}.pdf`,
+        );
+        if (result && result.ok && window.pywebview) showToast("PDF enregistré");
+        else if (result && result.error) showToast(result.error, "error");
       } catch (err) {
         showToast("Impossible de télécharger le PDF", "error");
       } finally {

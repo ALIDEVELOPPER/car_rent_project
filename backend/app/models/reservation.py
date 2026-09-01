@@ -27,6 +27,8 @@ class Reservation(db.Model):
     # ne doit pas modifier le montant d'une réservation déjà passée.
     prix_jour_applique: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     montant_total: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    caution: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False, default=Decimal("0"), server_default="0")
+    lieu_prise_en_charge: Mapped[str | None] = mapped_column(Text, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC), nullable=False

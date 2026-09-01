@@ -15,7 +15,15 @@ const RESA_STATUT_LABELS = {
 };
 
 function emptyReservationForm() {
-  return { client_id: "", vehicule_id: "", date_debut: "", date_fin: "", notes: "" };
+  return {
+    client_id: "",
+    vehicule_id: "",
+    date_debut: "",
+    date_fin: "",
+    caution: "",
+    lieu_prise_en_charge: "",
+    notes: "",
+  };
 }
 
 function reservationsPage() {
@@ -33,6 +41,7 @@ function reservationsPage() {
     dispoStatus: null,
     dispoTimeout: null,
     currentUser: null,
+    contratLoadingId: null,
 
     async init() {
       this.currentUser = await requireAuth("reservations");
@@ -101,6 +110,8 @@ function reservationsPage() {
         vehicule_id: r.vehicule_id,
         date_debut: r.date_debut,
         date_fin: r.date_fin,
+        caution: r.caution && Number(r.caution) ? r.caution : "",
+        lieu_prise_en_charge: r.lieu_prise_en_charge || "",
         notes: r.notes || "",
       };
       this.formError = "";
@@ -170,6 +181,24 @@ function reservationsPage() {
         this.formError = err.message;
       } finally {
         this.saving = false;
+      }
+    },
+
+    async downloadContrat(reservation) {
+      if (this.contratLoadingId) return;
+      this.contratLoadingId = reservation.id;
+      try {
+        const num = String(reservation.id).padStart(5, "0");
+        const result = await downloadAuthed(
+          `/api/reservations/${reservation.id}/contrat/pdf`,
+          `contrat-${num}.pdf`,
+        );
+        if (result && result.ok && window.pywebview) showToast("Contrat enregistré");
+        else if (result && result.error) showToast(result.error, "error");
+      } catch (err) {
+        showToast("Impossible de générer le contrat", "error");
+      } finally {
+        this.contratLoadingId = null;
       }
     },
 

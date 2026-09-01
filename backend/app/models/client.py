@@ -22,6 +22,8 @@ class Client(db.Model):
         nullable=True,
     )
     numero_piece_identite: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    numero_permis: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    date_delivrance_permis: Mapped[date | None] = mapped_column(Date, nullable=True)
     document_identite_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     permis_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
