@@ -1,6 +1,6 @@
 window.I18N = window.I18N || {};
 window.I18N.fr = {
-  app: { name: "Agence Location" },
+  app: { name: "Krilia" },
 
   common: {
     save: "Enregistrer",

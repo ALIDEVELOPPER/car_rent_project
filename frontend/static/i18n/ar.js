@@ -1,6 +1,6 @@
 window.I18N = window.I18N || {};
 window.I18N.ar = {
-  app: { name: "وكالة كراء السيارات" },
+  app: { name: "Krilia" },
 
   common: {
     save: "حفظ",

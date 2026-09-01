@@ -7,10 +7,10 @@
 ; le fait que les données (base, uploads, clé secrète) vivent déjà dans
 ; %APPDATA%\AgenceLocation, géré par backend/app/paths.py.
 
-#define AppName "Agence Location"
+#define AppName "Krilia"
 #define AppExeName "AgenceLocation.exe"
 #define AppVersion "1.0.0"
-#define AppPublisher "Agence Location"
+#define AppPublisher "Krilia"
 #define SourceDir "dist\AgenceLocation"
 
 [Setup]
@@ -23,7 +23,7 @@ DefaultGroupName={#AppName}
 PrivilegesRequired=lowest
 DisableProgramGroupPage=yes
 OutputDir=dist
-OutputBaseFilename=AgenceLocationSetup
+OutputBaseFilename=KriliaSetup
 SetupIconFile=..\frontend\assets\logo\icon.ico
 Compression=lzma
 SolidCompression=yes

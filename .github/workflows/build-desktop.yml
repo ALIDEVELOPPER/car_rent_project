@@ -13,11 +13,11 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact-name: AgenceLocation-windows
+            artifact-name: Krilia-windows
           - os: macos-latest
-            artifact-name: AgenceLocation-macos
+            artifact-name: Krilia-macos
           - os: ubuntu-latest
-            artifact-name: AgenceLocation-linux
+            artifact-name: Krilia-linux
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -57,5 +57,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Windows'
         with:
-          name: AgenceLocation-windows-setup
-          path: desktop/dist/AgenceLocationSetup.exe
+          name: Krilia-windows-setup
+          path: desktop/dist/KriliaSetup.exe

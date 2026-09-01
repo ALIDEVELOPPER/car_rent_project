@@ -23,7 +23,7 @@ from app import create_app  # noqa: E402
 from app.paths import get_migrations_dir  # noqa: E402
 from flask_migrate import upgrade  # noqa: E402
 
-APP_TITLE = "Agence Location"
+APP_TITLE = "Krilia"
 
 logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
