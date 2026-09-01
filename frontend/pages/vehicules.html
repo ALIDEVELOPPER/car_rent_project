@@ -18,10 +18,13 @@
 
     <div class="main-content">
       <div class="topbar">
-        <h1>Véhicules</h1>
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
-          <span id="theme-toggle-icon"></span>
-        </button>
+        <h1 data-i18n="vehicules.title">Véhicules</h1>
+        <div class="topbar-actions">
+          <button class="lang-toggle" onclick="toggleLang()" data-i18n="lang.toggle">العربية</button>
+          <button class="theme-toggle" onclick="toggleTheme()" data-i18n-aria="theme.toggle" aria-label="Changer de thème">
+            <span id="theme-toggle-icon"></span>
+          </button>
+        </div>
       </div>
 
       <div class="page-content" x-data="vehiculesPage()" x-init="init()">
@@ -31,30 +34,31 @@
               class="input"
               style="max-width: 280px"
               type="search"
+              data-i18n-ph="vehicules.search_ph"
               placeholder="Rechercher un véhicule..."
               x-model="search"
               @input="onSearchInput()"
             />
             <select class="input" style="max-width: 200px" x-model="statutFilter" @change="loadVehicules()">
-              <option value="">Tous les statuts</option>
-              <option value="disponible">Disponible</option>
-              <option value="loue">Loué</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="hors_service">Hors service</option>
+              <option value="" x-text="t('common.all_statuses')">Tous les statuts</option>
+              <option value="disponible" x-text="t('vehicules.statut.disponible')">Disponible</option>
+              <option value="loue" x-text="t('vehicules.statut.loue')">Loué</option>
+              <option value="maintenance" x-text="t('vehicules.statut.maintenance')">Maintenance</option>
+              <option value="hors_service" x-text="t('vehicules.statut.hors_service')">Hors service</option>
             </select>
           </div>
-          <button class="btn btn-primary" @click="openCreate()">+ Nouveau véhicule</button>
+          <button class="btn btn-primary" @click="openCreate()" data-i18n="vehicules.new">+ Nouveau véhicule</button>
         </div>
 
         <div class="table-wrapper">
           <table>
             <thead>
               <tr>
-                <th>Véhicule</th>
-                <th>Immatriculation</th>
-                <th>Catégorie</th>
-                <th>Tarif / jour</th>
-                <th>Statut</th>
+                <th data-i18n="vehicules.th_vehicule">Véhicule</th>
+                <th data-i18n="vehicules.th_immat">Immatriculation</th>
+                <th data-i18n="vehicules.th_categorie">Catégorie</th>
+                <th data-i18n="vehicules.th_tarif">Tarif / jour</th>
+                <th data-i18n="vehicules.th_statut">Statut</th>
                 <th></th>
               </tr>
             </thead>
@@ -66,7 +70,7 @@
               </template>
               <template x-if="!loading && vehicules.length === 0">
                 <tr>
-                  <td colspan="6" class="empty-state">Aucun véhicule trouvé.</td>
+                  <td colspan="6" class="empty-state" x-text="t('vehicules.none')"></td>
                 </tr>
               </template>
               <template x-for="v in vehicules" :key="v.id">
@@ -89,8 +93,8 @@
                   </td>
                   <td>
                     <div class="flex gap-2">
-                      <button class="btn btn-secondary btn-sm" @click="openEdit(v)">Modifier</button>
-                      <button class="btn btn-danger btn-sm" x-show="isAdmin()" @click="deleteVehicule(v)">Supprimer</button>
+                      <button class="btn btn-secondary btn-sm" @click="openEdit(v)" x-text="t('common.edit')"></button>
+                      <button class="btn btn-danger btn-sm" x-show="isAdmin()" @click="deleteVehicule(v)" x-text="t('common.delete')"></button>
                     </div>
                   </td>
                 </tr>
@@ -102,7 +106,7 @@
         <div class="modal-overlay" x-show="modalOpen" x-cloak @click.self="closeModal()">
           <div class="modal">
             <div class="modal-header">
-              <h2 x-text="editing ? 'Modifier le véhicule' : 'Nouveau véhicule'"></h2>
+              <h2 x-text="editing ? t('vehicules.modal_edit') : t('vehicules.modal_new')"></h2>
               <button class="btn btn-ghost btn-icon" type="button" @click="closeModal()">✕</button>
             </div>
 
@@ -116,21 +120,21 @@
             <form @submit.prevent="submitForm()">
               <div class="form-row">
                 <div class="form-group">
-                  <label>Marque</label>
+                  <label data-i18n="vehicules.f_marque">Marque</label>
                   <input class="input" x-model="form.marque" required />
                 </div>
                 <div class="form-group">
-                  <label>Modèle</label>
+                  <label data-i18n="vehicules.f_modele">Modèle</label>
                   <input class="input" x-model="form.modele" required />
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Immatriculation</label>
+                  <label data-i18n="vehicules.f_immat">Immatriculation</label>
                   <input class="input" x-model="form.immatriculation" required />
                 </div>
                 <div class="form-group">
-                  <label>Catégorie</label>
+                  <label data-i18n="vehicules.f_categorie">Catégorie</label>
                   <input class="input" list="categories" x-model="form.categorie" required />
                   <datalist id="categories">
                     <option value="citadine"></option>
@@ -143,57 +147,57 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Année</label>
+                  <label data-i18n="vehicules.f_annee">Année</label>
                   <input class="input" type="number" min="1990" max="2100" x-model="form.annee" />
                 </div>
                 <div class="form-group">
-                  <label>Couleur</label>
+                  <label data-i18n="vehicules.f_couleur">Couleur</label>
                   <input class="input" x-model="form.couleur" />
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Kilométrage</label>
+                  <label data-i18n="vehicules.f_km">Kilométrage</label>
                   <input class="input" type="number" min="0" x-model="form.kilometrage" />
                 </div>
                 <div class="form-group">
-                  <label>Tarif journalier (MAD)</label>
+                  <label data-i18n="vehicules.f_tarif">Tarif journalier (MAD)</label>
                   <input class="input" type="number" min="0.01" step="0.01" x-model="form.tarif_jour" required />
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Carburant</label>
+                  <label data-i18n="vehicules.f_carburant">Carburant</label>
                   <select class="input" x-model="form.carburant">
                     <option value="">—</option>
-                    <option value="essence">Essence</option>
-                    <option value="diesel">Diesel</option>
-                    <option value="hybride">Hybride</option>
-                    <option value="electrique">Électrique</option>
+                    <option value="essence" x-text="t('vehicules.carburant.essence')">Essence</option>
+                    <option value="diesel" x-text="t('vehicules.carburant.diesel')">Diesel</option>
+                    <option value="hybride" x-text="t('vehicules.carburant.hybride')">Hybride</option>
+                    <option value="electrique" x-text="t('vehicules.carburant.electrique')">Électrique</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Transmission</label>
+                  <label data-i18n="vehicules.f_transmission">Transmission</label>
                   <select class="input" x-model="form.transmission">
                     <option value="">—</option>
-                    <option value="manuelle">Manuelle</option>
-                    <option value="automatique">Automatique</option>
+                    <option value="manuelle" x-text="t('vehicules.transmission.manuelle')">Manuelle</option>
+                    <option value="automatique" x-text="t('vehicules.transmission.automatique')">Automatique</option>
                   </select>
                 </div>
               </div>
               <div class="form-group">
-                <label>Statut</label>
+                <label data-i18n="vehicules.f_statut">Statut</label>
                 <select class="input" x-model="form.statut">
-                  <option value="disponible">Disponible</option>
-                  <option value="loue">Loué</option>
-                  <option value="maintenance">Maintenance</option>
-                  <option value="hors_service">Hors service</option>
+                  <option value="disponible" x-text="t('vehicules.statut.disponible')">Disponible</option>
+                  <option value="loue" x-text="t('vehicules.statut.loue')">Loué</option>
+                  <option value="maintenance" x-text="t('vehicules.statut.maintenance')">Maintenance</option>
+                  <option value="hors_service" x-text="t('vehicules.statut.hors_service')">Hors service</option>
                 </select>
               </div>
 
               <template x-if="editing">
                 <div class="form-group">
-                  <label>Photo</label>
+                  <label x-text="t('vehicules.f_photo')">Photo</label>
                   <div class="flex gap-3" style="align-items: center">
                     <img
                       x-show="editing.photo_url"
@@ -206,9 +210,9 @@
               </template>
 
               <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" @click="closeModal()">Annuler</button>
+                <button type="button" class="btn btn-secondary" @click="closeModal()" x-text="t('common.cancel')"></button>
                 <button type="submit" class="btn btn-primary" :disabled="saving">
-                  <span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
+                  <span x-text="saving ? t('common.saving') : t('common.save')"></span>
                 </button>
               </div>
             </form>

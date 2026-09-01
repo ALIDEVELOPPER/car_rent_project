@@ -18,34 +18,37 @@
 
     <div class="main-content">
       <div class="topbar">
-        <h1>Réservations</h1>
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
-          <span id="theme-toggle-icon"></span>
-        </button>
+        <h1 data-i18n="reservations.title">Réservations</h1>
+        <div class="topbar-actions">
+          <button class="lang-toggle" onclick="toggleLang()" data-i18n="lang.toggle">العربية</button>
+          <button class="theme-toggle" onclick="toggleTheme()" data-i18n-aria="theme.toggle" aria-label="Changer de thème">
+            <span id="theme-toggle-icon"></span>
+          </button>
+        </div>
       </div>
 
       <div class="page-content" x-data="reservationsPage()" x-init="init()">
         <div class="flex-between mb-6" style="flex-wrap: wrap; gap: var(--space-3)">
           <select class="input" style="max-width: 220px" x-model="statutFilter" @change="loadReservations()">
-            <option value="">Tous les statuts</option>
-            <option value="en_attente">En attente</option>
-            <option value="confirmee">Confirmée</option>
-            <option value="en_cours">En cours</option>
-            <option value="terminee">Terminée</option>
-            <option value="annulee">Annulée</option>
+            <option value="" x-text="t('common.all_statuses')">Tous les statuts</option>
+            <option value="en_attente" x-text="t('reservations.statut.en_attente')">En attente</option>
+            <option value="confirmee" x-text="t('reservations.statut.confirmee')">Confirmée</option>
+            <option value="en_cours" x-text="t('reservations.statut.en_cours')">En cours</option>
+            <option value="terminee" x-text="t('reservations.statut.terminee')">Terminée</option>
+            <option value="annulee" x-text="t('reservations.statut.annulee')">Annulée</option>
           </select>
-          <button class="btn btn-primary" @click="openCreate()">+ Nouvelle réservation</button>
+          <button class="btn btn-primary" @click="openCreate()" data-i18n="reservations.new">+ Nouvelle réservation</button>
         </div>
 
         <div class="table-wrapper">
           <table>
             <thead>
               <tr>
-                <th>Client</th>
-                <th>Véhicule</th>
-                <th>Période</th>
-                <th>Montant</th>
-                <th>Statut</th>
+                <th data-i18n="reservations.th_client">Client</th>
+                <th data-i18n="reservations.th_vehicule">Véhicule</th>
+                <th data-i18n="reservations.th_periode">Période</th>
+                <th data-i18n="reservations.th_montant">Montant</th>
+                <th data-i18n="reservations.th_statut">Statut</th>
                 <th></th>
               </tr>
             </thead>
@@ -57,7 +60,7 @@
               </template>
               <template x-if="!loading && reservations.length === 0">
                 <tr>
-                  <td colspan="6" class="empty-state">Aucune réservation trouvée.</td>
+                  <td colspan="6" class="empty-state" x-text="t('reservations.none')"></td>
                 </tr>
               </template>
               <template x-for="r in reservations" :key="r.id">
@@ -68,35 +71,32 @@
                   <td x-text="`${r.montant_total} MAD`"></td>
                   <td>
                     <span class="badge" :class="statutBadgeClass(r.statut)" x-text="statutLabel(r.statut)"></span>
-                    <div class="text-secondary" style="font-size: var(--text-xs)" x-show="r.facture_id" x-text="`Facture #${r.facture_id}`"></div>
+                    <div class="text-secondary" style="font-size: var(--text-xs)" x-show="r.facture_id" x-text="t('reservations.facture_num', { id: r.facture_id })"></div>
                   </td>
                   <td>
                     <div class="flex gap-2" style="flex-wrap: wrap">
                       <button class="btn btn-secondary btn-sm" x-show="r.statut !== 'annulee'" @click="downloadContrat(r)" :disabled="contratLoadingId === r.id">
-                        <span x-text="contratLoadingId === r.id ? 'Contrat…' : 'Contrat'"></span>
+                        <span x-text="contratLoadingId === r.id ? t('reservations.contrat_loading') : t('reservations.contrat')"></span>
                       </button>
-                      <button class="btn btn-secondary btn-sm" x-show="['en_attente', 'confirmee', 'en_cours'].includes(r.statut)" @click="openEdit(r)">
-                        Modifier
+                      <button class="btn btn-secondary btn-sm" x-show="['en_attente', 'confirmee', 'en_cours'].includes(r.statut)" @click="openEdit(r)" x-text="t('common.edit')">
                       </button>
-                      <button class="btn btn-secondary btn-sm" x-show="r.statut === 'en_attente'" @click="changeStatut(r, 'confirmee')">
-                        Confirmer
+                      <button class="btn btn-secondary btn-sm" x-show="r.statut === 'en_attente'" @click="changeStatut(r, 'confirmee')" x-text="t('reservations.confirmer')">
                       </button>
                       <button
                         class="btn btn-secondary btn-sm"
                         x-show="['en_attente', 'confirmee'].includes(r.statut)"
                         @click="changeStatut(r, 'en_cours')"
+                        x-text="t('reservations.demarrer')"
                       >
-                        Démarrer
                       </button>
-                      <button class="btn btn-primary btn-sm" x-show="r.statut === 'en_cours'" @click="changeStatut(r, 'terminee')">
-                        Terminer
+                      <button class="btn btn-primary btn-sm" x-show="r.statut === 'en_cours'" @click="changeStatut(r, 'terminee')" x-text="t('reservations.terminer')">
                       </button>
                       <button
                         class="btn btn-danger btn-sm"
                         x-show="['en_attente', 'confirmee', 'en_cours'].includes(r.statut)"
                         @click="changeStatut(r, 'annulee')"
+                        x-text="t('reservations.statut.annulee')"
                       >
-                        Annuler
                       </button>
                     </div>
                   </td>
@@ -109,7 +109,7 @@
         <div class="modal-overlay" x-show="modalOpen" x-cloak @click.self="closeModal()">
           <div class="modal">
             <div class="modal-header">
-              <h2 x-text="editing ? 'Modifier la réservation' : 'Nouvelle réservation'"></h2>
+              <h2 x-text="editing ? t('reservations.modal_edit') : t('reservations.modal_new')"></h2>
               <button class="btn btn-ghost btn-icon" type="button" @click="closeModal()">✕</button>
             </div>
 
@@ -122,9 +122,9 @@
 
             <form @submit.prevent="submitForm()">
               <div class="form-group">
-                <label>Client</label>
+                <label x-text="t('reservations.f_client')"></label>
                 <select class="input" x-model="form.client_id" required>
-                  <option value="">Sélectionner un client</option>
+                  <option value="" x-text="t('reservations.select_client')"></option>
                   <template x-for="c in clients" :key="c.id">
                     <option :value="c.id" x-text="`${c.prenom} ${c.nom} — ${c.telephone}`"></option>
                   </template>
@@ -132,9 +132,9 @@
               </div>
 
               <div class="form-group">
-                <label>Véhicule</label>
+                <label x-text="t('reservations.f_vehicule')"></label>
                 <select class="input" x-model="form.vehicule_id" required @change="onAvailabilityInputsChanged()">
-                  <option value="">Sélectionner un véhicule</option>
+                  <option value="" x-text="t('reservations.select_vehicule')"></option>
                   <template x-for="v in vehiculesSelectionnables" :key="v.id">
                     <option :value="v.id" x-text="`${v.marque} ${v.modele} (${v.immatriculation}) — ${v.tarif_jour} MAD/j`"></option>
                   </template>
@@ -143,50 +143,50 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label>Date de début</label>
+                  <label x-text="t('reservations.f_date_debut')"></label>
                   <input class="input" type="date" x-model="form.date_debut" required @change="onAvailabilityInputsChanged()" />
                 </div>
                 <div class="form-group">
-                  <label>Date de fin</label>
+                  <label x-text="t('reservations.f_date_fin')"></label>
                   <input class="input" type="date" x-model="form.date_fin" required @change="onAvailabilityInputsChanged()" />
                 </div>
               </div>
 
               <div class="form-group" x-show="dispoStatus">
-                <span class="badge badge-warning" x-show="dispoStatus === 'checking'">Vérification…</span>
-                <span class="badge badge-success" x-show="dispoStatus === 'disponible'">Véhicule disponible sur ces dates</span>
-                <span class="badge badge-danger" x-show="dispoStatus === 'indisponible'">Véhicule déjà réservé sur ces dates</span>
-                <span class="badge badge-danger" x-show="dispoStatus === 'invalid'">La date de fin doit être après la date de début</span>
+                <span class="badge badge-warning" x-show="dispoStatus === 'checking'" x-text="t('reservations.dispo_checking')"></span>
+                <span class="badge badge-success" x-show="dispoStatus === 'disponible'" x-text="t('reservations.dispo_ok')"></span>
+                <span class="badge badge-danger" x-show="dispoStatus === 'indisponible'" x-text="t('reservations.dispo_ko')"></span>
+                <span class="badge badge-danger" x-show="dispoStatus === 'invalid'" x-text="t('reservations.dispo_invalid')"></span>
               </div>
 
               <div class="form-group" x-show="estimate()">
                 <span
                   class="text-secondary"
                   style="font-size: var(--text-sm)"
-                  x-text="estimate() ? `Estimation : ${estimate().jours} jour(s) × ${estimate().tarifJour} MAD = ${estimate().montant} MAD` : ''"
+                  x-text="estimate() ? t('reservations.estimation', { jours: estimate().jours, tarif: estimate().tarifJour, montant: estimate().montant }) : ''"
                 ></span>
               </div>
 
               <div class="form-row">
                 <div class="form-group">
-                  <label>Caution (dépôt de garantie)</label>
+                  <label x-text="t('reservations.f_caution')"></label>
                   <input class="input" type="number" min="0" step="0.01" x-model="form.caution" placeholder="0" />
                 </div>
                 <div class="form-group">
-                  <label>Lieu de prise en charge</label>
+                  <label x-text="t('reservations.f_lieu')"></label>
                   <input class="input" type="text" x-model="form.lieu_prise_en_charge" />
                 </div>
               </div>
 
               <div class="form-group">
-                <label>Notes</label>
+                <label x-text="t('reservations.f_notes')"></label>
                 <textarea class="input" rows="2" x-model="form.notes"></textarea>
               </div>
 
               <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" @click="closeModal()">Annuler</button>
+                <button type="button" class="btn btn-secondary" @click="closeModal()" x-text="t('common.cancel')"></button>
                 <button type="submit" class="btn btn-primary" :disabled="submitDisabled()">
-                  <span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
+                  <span x-text="saving ? t('common.saving') : t('common.save')"></span>
                 </button>
               </div>
             </form>

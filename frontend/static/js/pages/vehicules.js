@@ -5,13 +5,6 @@ const STATUT_BADGES = {
   hors_service: "badge-danger",
 };
 
-const STATUT_LABELS = {
-  disponible: "Disponible",
-  loue: "Loué",
-  maintenance: "Maintenance",
-  hors_service: "Hors service",
-};
-
 function emptyVehiculeForm() {
   return {
     marque: "",
@@ -56,7 +49,7 @@ function vehiculesPage() {
     },
 
     statutLabel(statut) {
-      return STATUT_LABELS[statut] || statut;
+      return t("vehicules.statut." + statut) !== "vehicules.statut." + statut ? t("vehicules.statut." + statut) : statut;
     },
 
     async loadVehicules() {
@@ -121,10 +114,10 @@ function vehiculesPage() {
       try {
         if (this.editing) {
           await Api.put(`/vehicules/${this.editing.id}`, payload);
-          showToast("Véhicule mis à jour");
+          showToast(t("vehicules.t_maj"));
         } else {
           await Api.post("/vehicules", payload);
-          showToast("Véhicule créé");
+          showToast(t("vehicules.t_cree"));
         }
         this.modalOpen = false;
         await this.loadVehicules();
@@ -136,10 +129,10 @@ function vehiculesPage() {
     },
 
     async deleteVehicule(vehicule) {
-      if (!confirm(`Supprimer ${vehicule.marque} ${vehicule.modele} (${vehicule.immatriculation}) ?`)) return;
+      if (!confirm(t("vehicules.confirm_delete", { name: `${vehicule.marque} ${vehicule.modele} (${vehicule.immatriculation})` }))) return;
       try {
         await Api.del(`/vehicules/${vehicule.id}`);
-        showToast("Véhicule supprimé");
+        showToast(t("vehicules.t_supprime"));
         await this.loadVehicules();
       } catch (err) {
         showToast(err.message, "error");
@@ -155,7 +148,7 @@ function vehiculesPage() {
 
       try {
         const updated = await Api.upload(`/vehicules/${vehicule.id}/photo`, formData);
-        showToast("Photo envoyée");
+        showToast(t("common.photo_sent"));
         Object.assign(this.editing, updated);
         const idx = this.vehicules.findIndex((v) => v.id === vehicule.id);
         if (idx !== -1) this.vehicules[idx] = updated;

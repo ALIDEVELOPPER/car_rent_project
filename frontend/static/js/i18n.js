@@ -40,6 +40,14 @@
     return s;
   };
 
+  // Traduit un message d'erreur renvoyé par le serveur (correspondance exacte,
+  // sinon on renvoie le message tel quel).
+  window.tErr = function (msg) {
+    if (!msg) return msg;
+    var e = (dict.errors && dict.errors[msg]) || (fallback.errors && fallback.errors[msg]);
+    return e || msg;
+  };
+
   window.currentLang = current;
 
   window.setLang = function (code) {

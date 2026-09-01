@@ -4,19 +4,6 @@ const FACTURE_STATUT_BADGES = {
   annulee: "badge-danger",
 };
 
-const FACTURE_STATUT_LABELS = {
-  en_attente: "En attente",
-  payee: "Payée",
-  annulee: "Annulée",
-};
-
-const MODE_PAIEMENT_LABELS = {
-  especes: "Espèces",
-  carte: "Carte",
-  virement: "Virement",
-  cheque: "Chèque",
-};
-
 function facturesPage() {
   return {
     factures: [],
@@ -41,10 +28,10 @@ function facturesPage() {
       return FACTURE_STATUT_BADGES[s] || "badge-neutral";
     },
     statutLabel(s) {
-      return FACTURE_STATUT_LABELS[s] || s;
+      return t("factures.statut." + s) !== "factures.statut." + s ? t("factures.statut." + s) : s;
     },
     modeLabel(m) {
-      return MODE_PAIEMENT_LABELS[m] || m;
+      return t("factures.mode." + m) !== "factures.mode." + m ? t("factures.mode." + m) : m;
     },
 
     async loadFactures() {
@@ -81,7 +68,7 @@ function facturesPage() {
     async confirmPaiement() {
       this.paiementError = "";
       if (!this.modePaiement) {
-        this.paiementError = "Sélectionnez un mode de paiement";
+        this.paiementError = t("factures.select_mode");
         return;
       }
       this.saving = true;
@@ -90,7 +77,7 @@ function facturesPage() {
           statut_paiement: "payee",
           mode_paiement: this.modePaiement,
         });
-        showToast("Facture marquée comme payée");
+        showToast(t("factures.t_payee"));
         this.paiementModalOpen = false;
         await this.loadFactures();
       } catch (err) {
@@ -111,20 +98,20 @@ function facturesPage() {
           `/api/factures/${facture.id}/pdf`,
           `${facture.numero_facture}.pdf`,
         );
-        if (result && result.ok && window.pywebview) showToast("PDF enregistré");
+        if (result && result.ok && window.pywebview) showToast(t("factures.pdf_ok"));
         else if (result && result.error) showToast(result.error, "error");
       } catch (err) {
-        showToast("Impossible de télécharger le PDF", "error");
+        showToast(t("common.error_generic"), "error");
       } finally {
         this.pdfLoadingId = null;
       }
     },
 
     async annulerFacture(facture) {
-      if (!confirm(`Annuler la facture ${facture.numero_facture} ?`)) return;
+      if (!confirm(t("factures.confirm_annuler", { num: facture.numero_facture }))) return;
       try {
         await Api.patch(`/factures/${facture.id}/statut-paiement`, { statut_paiement: "annulee" });
-        showToast("Facture annulée");
+        showToast(t("factures.t_annulee"));
         await this.loadFactures();
       } catch (err) {
         showToast(err.message, "error");

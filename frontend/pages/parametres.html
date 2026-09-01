@@ -18,10 +18,13 @@
 
     <div class="main-content">
       <div class="topbar">
-        <h1>Paramètres</h1>
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
-          <span id="theme-toggle-icon"></span>
-        </button>
+        <h1 data-i18n="parametres.title">Paramètres</h1>
+        <div class="topbar-actions">
+          <button class="lang-toggle" onclick="toggleLang()" data-i18n="lang.toggle">العربية</button>
+          <button class="theme-toggle" onclick="toggleTheme()" data-i18n-aria="theme.toggle" aria-label="Changer de thème">
+            <span id="theme-toggle-icon"></span>
+          </button>
+        </div>
       </div>
 
       <div class="page-content" x-data="parametresPage()" x-init="init()">
@@ -30,13 +33,13 @@
         </template>
 
         <template x-if="!loading && accessDenied">
-          <div class="empty-state">Cette section est réservée aux administrateurs.</div>
+          <div class="empty-state" x-text="t('parametres.access_denied')"></div>
         </template>
 
         <template x-if="!loading && !accessDenied">
           <div>
             <div class="card mb-6">
-              <div class="card-title">Informations de l'agence</div>
+              <div class="card-title" x-text="t('parametres.agence_infos')"></div>
 
               <template x-if="agenceError">
                 <div
@@ -56,48 +59,55 @@
                   style="width: 64px; height: 64px; border-radius: var(--radius-md); background: var(--color-surface-alt); border: 1px solid var(--color-border)"
                 ></div>
                 <div>
-                  <label style="display: block; margin-bottom: var(--space-2)">Logo</label>
+                  <label style="display: block; margin-bottom: var(--space-2)" x-text="t('parametres.f_logo')"></label>
                   <input type="file" accept=".jpg,.jpeg,.png,.webp" @change="uploadLogo($event.target)" />
                 </div>
               </div>
 
               <form @submit.prevent="saveAgence()">
                 <div class="form-group">
-                  <label>Nom de l'agence</label>
+                  <label x-text="t('parametres.f_nom')"></label>
                   <input class="input" x-model="agenceForm.nom" required />
                 </div>
                 <div class="form-row">
                   <div class="form-group">
-                    <label>Téléphone</label>
+                    <label x-text="t('parametres.f_tel')"></label>
                     <input class="input" x-model="agenceForm.telephone" />
                   </div>
                   <div class="form-group">
-                    <label>Email</label>
+                    <label x-text="t('parametres.f_email')"></label>
                     <input class="input" type="email" x-model="agenceForm.email" />
                   </div>
                 </div>
                 <div class="form-group">
-                  <label>Adresse</label>
+                  <label x-text="t('parametres.f_adresse')"></label>
                   <input class="input" x-model="agenceForm.adresse" />
                 </div>
                 <div class="form-group">
-                  <label>Mentions légales (pied de facture)</label>
+                  <label x-text="t('parametres.f_langue')"></label>
+                  <select class="input" x-model="agenceForm.langue" @change="setLang(agenceForm.langue)">
+                    <option value="fr" x-text="t('lang.fr')">Français</option>
+                    <option value="ar" x-text="t('lang.ar')">العربية</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label x-text="t('parametres.f_mentions')"></label>
                   <textarea class="input" rows="2" x-model="agenceForm.mentions_legales"></textarea>
                 </div>
                 <div class="form-group">
-                  <label>Conditions générales du contrat de location</label>
-                  <textarea class="input" rows="6" x-model="agenceForm.conditions_contrat" placeholder="Laisser vide pour utiliser le texte par défaut. Une clause par ligne."></textarea>
+                  <label x-text="t('parametres.f_conditions')"></label>
+                  <textarea class="input" rows="6" x-model="agenceForm.conditions_contrat" :placeholder="t('parametres.conditions_ph')"></textarea>
                 </div>
                 <div class="flex" style="justify-content: flex-end">
                   <button type="submit" class="btn btn-primary" :disabled="agenceSaving">
-                    <span x-text="agenceSaving ? 'Enregistrement...' : 'Enregistrer'"></span>
+                    <span x-text="agenceSaving ? t('common.saving') : t('common.save')"></span>
                   </button>
                 </div>
               </form>
             </div>
 
             <div class="card">
-              <div class="card-title">Mot de passe</div>
+              <div class="card-title" x-text="t('parametres.password_section')"></div>
               <template x-if="passwordError">
                 <div
                   style="background: var(--color-danger-bg); color: var(--color-danger); padding: var(--space-3); border-radius: var(--radius-sm); margin-bottom: var(--space-4); font-size: var(--text-sm);"
@@ -106,12 +116,12 @@
               </template>
               <form @submit.prevent="changePassword()">
                 <div class="form-group">
-                  <label>Nouveau mot de passe</label>
+                  <label x-text="t('parametres.f_new_password')"></label>
                   <input class="input" type="password" x-model="passwordForm.mot_de_passe" minlength="8" required />
                 </div>
                 <div class="flex" style="justify-content: flex-end">
                   <button type="submit" class="btn btn-primary" :disabled="passwordSaving">
-                    <span x-text="passwordSaving ? 'Enregistrement...' : 'Changer le mot de passe'"></span>
+                    <span x-text="passwordSaving ? t('common.saving') : t('parametres.change_password')"></span>
                   </button>
                 </div>
               </form>

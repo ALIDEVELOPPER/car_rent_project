@@ -92,10 +92,10 @@ function clientsPage() {
       try {
         if (this.editing) {
           await Api.put(`/clients/${this.editing.id}`, payload);
-          showToast("Client mis à jour");
+          showToast(t("clients.t_maj"));
         } else {
           await Api.post("/clients", payload);
-          showToast("Client créé");
+          showToast(t("clients.t_cree"));
         }
         this.modalOpen = false;
         await this.loadClients();
@@ -107,10 +107,10 @@ function clientsPage() {
     },
 
     async deleteClient(client) {
-      if (!confirm(`Supprimer ${client.prenom} ${client.nom} ?`)) return;
+      if (!confirm(t("clients.confirm_delete", { name: `${client.prenom} ${client.nom}` }))) return;
       try {
         await Api.del(`/clients/${client.id}`);
-        showToast("Client supprimé");
+        showToast(t("clients.t_supprime"));
         await this.loadClients();
       } catch (err) {
         showToast(err.message, "error");
@@ -127,7 +127,7 @@ function clientsPage() {
 
       try {
         const updated = await Api.upload(`/clients/${client.id}/${endpoint}`, formData);
-        showToast("Document envoyé");
+        showToast(t("common.document_sent"));
         Object.assign(this.editing, updated);
         const idx = this.clients.findIndex((c) => c.id === client.id);
         if (idx !== -1) this.clients[idx] = updated;

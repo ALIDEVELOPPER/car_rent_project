@@ -25,7 +25,8 @@ const Api = (() => {
     }
 
     if (!res.ok) {
-      throw new ApiError((data && data.error) || `Erreur ${res.status}`, res.status, data);
+      const raw = (data && data.error) || `Erreur ${res.status}`;
+      throw new ApiError(window.tErr ? window.tErr(raw) : raw, res.status, data);
     }
 
     return data;
@@ -40,7 +41,8 @@ const Api = (() => {
       window.location.href = "/login";
     }
     if (!res.ok) {
-      throw new ApiError((data && data.error) || `Erreur ${res.status}`, res.status, data);
+      const raw = (data && data.error) || `Erreur ${res.status}`;
+      throw new ApiError(window.tErr ? window.tErr(raw) : raw, res.status, data);
     }
     return data;
   }

@@ -1,5 +1,5 @@
 function emptyAgenceForm() {
-  return { nom: "", adresse: "", telephone: "", email: "", mentions_legales: "", conditions_contrat: "" };
+  return { nom: "", adresse: "", telephone: "", email: "", mentions_legales: "", conditions_contrat: "", langue: "fr" };
 }
 
 function parametresPage() {
@@ -38,6 +38,7 @@ function parametresPage() {
           email: this.agence.email || "",
           mentions_legales: this.agence.mentions_legales || "",
           conditions_contrat: this.agence.conditions_contrat || "",
+          langue: this.agence.langue || "fr",
         };
       } catch (err) {
         showToast(err.message, "error");
@@ -49,7 +50,7 @@ function parametresPage() {
       this.agenceSaving = true;
       try {
         this.agence = await Api.put("/parametres/agence", this.agenceForm);
-        showToast("Informations de l'agence mises à jour");
+        showToast(t("parametres.t_agence"));
       } catch (err) {
         this.agenceError = err.message;
       } finally {
@@ -66,7 +67,7 @@ function parametresPage() {
 
       try {
         this.agence = await Api.upload("/parametres/agence/logo", formData);
-        showToast("Logo mis à jour");
+        showToast(t("parametres.t_logo"));
       } catch (err) {
         showToast(err.message, "error");
       }
@@ -76,7 +77,7 @@ function parametresPage() {
     async changePassword() {
       this.passwordError = "";
       if (this.passwordForm.mot_de_passe.length < 8) {
-        this.passwordError = "Le mot de passe doit contenir au moins 8 caractères";
+        this.passwordError = t("parametres.password_short");
         return;
       }
       this.passwordSaving = true;
@@ -85,7 +86,7 @@ function parametresPage() {
           mot_de_passe: this.passwordForm.mot_de_passe,
         });
         this.passwordForm.mot_de_passe = "";
-        showToast("Mot de passe modifié");
+        showToast(t("parametres.t_password"));
       } catch (err) {
         this.passwordError = err.message;
       } finally {

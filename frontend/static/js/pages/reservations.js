@@ -6,14 +6,6 @@ const RESA_STATUT_BADGES = {
   annulee: "badge-danger",
 };
 
-const RESA_STATUT_LABELS = {
-  en_attente: "En attente",
-  confirmee: "Confirmée",
-  en_cours: "En cours",
-  terminee: "Terminée",
-  annulee: "Annulée",
-};
-
 function emptyReservationForm() {
   return {
     client_id: "",
@@ -52,7 +44,7 @@ function reservationsPage() {
       return RESA_STATUT_BADGES[s] || "badge-neutral";
     },
     statutLabel(s) {
-      return RESA_STATUT_LABELS[s] || s;
+      return t("reservations.statut." + s) !== "reservations.statut." + s ? t("reservations.statut." + s) : s;
     },
 
     clientLabel(id) {
@@ -170,10 +162,10 @@ function reservationsPage() {
       try {
         if (this.editing) {
           await Api.put(`/reservations/${this.editing.id}`, this.form);
-          showToast("Réservation mise à jour");
+          showToast(t("reservations.t_maj"));
         } else {
           await Api.post("/reservations", this.form);
-          showToast("Réservation créée");
+          showToast(t("reservations.t_cree"));
         }
         this.modalOpen = false;
         await this.loadReservations();
@@ -193,10 +185,10 @@ function reservationsPage() {
           `/api/reservations/${reservation.id}/contrat/pdf`,
           `contrat-${num}.pdf`,
         );
-        if (result && result.ok && window.pywebview) showToast("Contrat enregistré");
+        if (result && result.ok && window.pywebview) showToast(t("reservations.contrat_ok"));
         else if (result && result.error) showToast(result.error, "error");
       } catch (err) {
-        showToast("Impossible de générer le contrat", "error");
+        showToast(t("common.error_generic"), "error");
       } finally {
         this.contratLoadingId = null;
       }
@@ -204,14 +196,14 @@ function reservationsPage() {
 
     async changeStatut(reservation, statut) {
       const confirmations = {
-        annulee: "Annuler cette réservation ?",
-        terminee: "Clôturer cette réservation ? Une facture sera générée automatiquement.",
+        annulee: t("reservations.confirm_annuler"),
+        terminee: t("reservations.confirm_terminer"),
       };
       if (confirmations[statut] && !confirm(confirmations[statut])) return;
 
       try {
         await Api.patch(`/reservations/${reservation.id}/statut`, { statut });
-        showToast("Statut mis à jour");
+        showToast(t("reservations.t_statut"));
         await this.loadReservations();
       } catch (err) {
         showToast(err.message, "error");

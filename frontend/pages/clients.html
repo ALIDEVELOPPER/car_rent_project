@@ -18,10 +18,13 @@
 
     <div class="main-content">
       <div class="topbar">
-        <h1>Clients</h1>
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
-          <span id="theme-toggle-icon"></span>
-        </button>
+        <h1 data-i18n="clients.title">Clients</h1>
+        <div class="topbar-actions">
+          <button class="lang-toggle" onclick="toggleLang()" data-i18n="lang.toggle">العربية</button>
+          <button class="theme-toggle" onclick="toggleTheme()" data-i18n-aria="theme.toggle" aria-label="Changer de thème">
+            <span id="theme-toggle-icon"></span>
+          </button>
+        </div>
       </div>
 
       <div class="page-content" x-data="clientsPage()" x-init="init()">
@@ -30,21 +33,22 @@
             class="input"
             style="max-width: 320px"
             type="search"
+            data-i18n-ph="clients.search_ph"
             placeholder="Rechercher un client..."
             x-model="search"
             @input="onSearchInput()"
           />
-          <button class="btn btn-primary" @click="openCreate()">+ Nouveau client</button>
+          <button class="btn btn-primary" @click="openCreate()" data-i18n="clients.new">+ Nouveau client</button>
         </div>
 
         <div class="table-wrapper">
           <table>
             <thead>
               <tr>
-                <th>Nom</th>
-                <th>Téléphone</th>
-                <th>Email</th>
-                <th>Pièce d'identité</th>
+                <th data-i18n="clients.th_nom">Nom</th>
+                <th data-i18n="clients.th_tel">Téléphone</th>
+                <th data-i18n="clients.th_email">Email</th>
+                <th data-i18n="clients.th_piece">Pièce d'identité</th>
                 <th></th>
               </tr>
             </thead>
@@ -56,7 +60,7 @@
               </template>
               <template x-if="!loading && clients.length === 0">
                 <tr>
-                  <td colspan="5" class="empty-state">Aucun client trouvé.</td>
+                  <td colspan="5" class="empty-state" x-text="t('clients.none')"></td>
                 </tr>
               </template>
               <template x-for="c in clients" :key="c.id">
@@ -70,8 +74,8 @@
                   </td>
                   <td>
                     <div class="flex gap-2">
-                      <button class="btn btn-secondary btn-sm" @click="openEdit(c)">Modifier</button>
-                      <button class="btn btn-danger btn-sm" x-show="isAdmin()" @click="deleteClient(c)">Supprimer</button>
+                      <button class="btn btn-secondary btn-sm" @click="openEdit(c)" x-text="t('common.edit')"></button>
+                      <button class="btn btn-danger btn-sm" x-show="isAdmin()" @click="deleteClient(c)" x-text="t('common.delete')"></button>
                     </div>
                   </td>
                 </tr>
@@ -83,7 +87,7 @@
         <div class="modal-overlay" x-show="modalOpen" x-cloak @click.self="closeModal()">
           <div class="modal">
             <div class="modal-header">
-              <h2 x-text="editing ? 'Modifier le client' : 'Nouveau client'"></h2>
+              <h2 x-text="editing ? t('clients.modal_edit') : t('clients.modal_new')"></h2>
               <button class="btn btn-ghost btn-icon" type="button" @click="closeModal()">✕</button>
             </div>
 
@@ -97,65 +101,65 @@
             <form @submit.prevent="submitForm()">
               <div class="form-row">
                 <div class="form-group">
-                  <label>Nom</label>
+                  <label data-i18n="clients.f_nom">Nom</label>
                   <input class="input" x-model="form.nom" required />
                 </div>
                 <div class="form-group">
-                  <label>Prénom</label>
+                  <label data-i18n="clients.f_prenom">Prénom</label>
                   <input class="input" x-model="form.prenom" required />
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Téléphone</label>
+                  <label data-i18n="clients.f_tel">Téléphone</label>
                   <input class="input" x-model="form.telephone" required />
                 </div>
                 <div class="form-group">
-                  <label>Email</label>
+                  <label data-i18n="clients.f_email">Email</label>
                   <input class="input" type="email" x-model="form.email" />
                 </div>
               </div>
               <div class="form-group">
-                <label>Adresse</label>
+                <label data-i18n="clients.f_adresse">Adresse</label>
                 <input class="input" x-model="form.adresse" />
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Date de naissance</label>
+                  <label data-i18n="clients.f_naissance">Date de naissance</label>
                   <input class="input" type="date" x-model="form.date_naissance" />
                 </div>
                 <div class="form-group">
-                  <label>Type de pièce</label>
+                  <label data-i18n="clients.f_type_piece">Type de pièce</label>
                   <select class="input" x-model="form.type_piece_identite">
                     <option value="">—</option>
-                    <option value="cni">CNI</option>
-                    <option value="passeport">Passeport</option>
+                    <option value="cni" x-text="t('clients.piece_cni')">CNI</option>
+                    <option value="passeport" x-text="t('clients.piece_passeport')">Passeport</option>
                   </select>
                 </div>
               </div>
               <div class="form-group">
-                <label>Numéro de pièce d'identité</label>
+                <label data-i18n="clients.f_num_piece">Numéro de pièce d'identité</label>
                 <input class="input" x-model="form.numero_piece_identite" />
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Numéro de permis de conduire</label>
+                  <label data-i18n="clients.f_num_permis">Numéro de permis de conduire</label>
                   <input class="input" x-model="form.numero_permis" />
                 </div>
                 <div class="form-group">
-                  <label>Permis délivré le</label>
+                  <label data-i18n="clients.f_date_permis">Permis délivré le</label>
                   <input class="input" type="date" x-model="form.date_delivrance_permis" />
                 </div>
               </div>
 
               <template x-if="editing">
                 <div class="form-group">
-                  <label>Documents</label>
+                  <label x-text="t('clients.documents')"></label>
                   <div class="flex gap-3" style="align-items: center; margin-bottom: var(--space-2)">
                     <span
                       class="text-secondary"
                       style="font-size: var(--text-sm); min-width: 160px"
-                      x-text="editing.document_identite_url ? 'Pièce d\'identité envoyée' : 'Pièce d\'identité : aucune'"
+                      x-text="editing.document_identite_url ? t('clients.piece_envoyee') : t('clients.piece_aucune')"
                     ></span>
                     <input type="file" accept=".pdf,.jpg,.jpeg,.png" @change="uploadDocument(editing, 'identite', $event.target)" />
                   </div>
@@ -163,7 +167,7 @@
                     <span
                       class="text-secondary"
                       style="font-size: var(--text-sm); min-width: 160px"
-                      x-text="editing.permis_url ? 'Permis envoyé' : 'Permis : aucun'"
+                      x-text="editing.permis_url ? t('clients.permis_envoye') : t('clients.permis_aucun')"
                     ></span>
                     <input type="file" accept=".pdf,.jpg,.jpeg,.png" @change="uploadDocument(editing, 'permis', $event.target)" />
                   </div>
@@ -171,9 +175,9 @@
               </template>
 
               <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" @click="closeModal()">Annuler</button>
+                <button type="button" class="btn btn-secondary" @click="closeModal()" x-text="t('common.cancel')"></button>
                 <button type="submit" class="btn btn-primary" :disabled="saving">
-                  <span x-text="saving ? 'Enregistrement...' : 'Enregistrer'"></span>
+                  <span x-text="saving ? t('common.saving') : t('common.save')"></span>
                 </button>
               </div>
             </form>

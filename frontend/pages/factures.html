@@ -18,10 +18,13 @@
 
     <div class="main-content">
       <div class="topbar">
-        <h1>Factures</h1>
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
-          <span id="theme-toggle-icon"></span>
-        </button>
+        <h1 data-i18n="factures.title">Factures</h1>
+        <div class="topbar-actions">
+          <button class="lang-toggle" onclick="toggleLang()" data-i18n="lang.toggle">العربية</button>
+          <button class="theme-toggle" onclick="toggleTheme()" data-i18n-aria="theme.toggle" aria-label="Changer de thème">
+            <span id="theme-toggle-icon"></span>
+          </button>
+        </div>
       </div>
 
       <div class="page-content" x-data="facturesPage()" x-init="init()">
@@ -31,15 +34,16 @@
               class="input"
               style="max-width: 240px"
               type="search"
+              data-i18n-ph="factures.search_ph"
               placeholder="Rechercher un numéro..."
               x-model="search"
               @input="onSearchInput()"
             />
             <select class="input" style="max-width: 200px" x-model="statutFilter" @change="loadFactures()">
-              <option value="">Tous les statuts</option>
-              <option value="en_attente">En attente</option>
-              <option value="payee">Payée</option>
-              <option value="annulee">Annulée</option>
+              <option value="" x-text="t('common.all_statuses')">Tous les statuts</option>
+              <option value="en_attente" x-text="t('factures.statut.en_attente')">En attente</option>
+              <option value="payee" x-text="t('factures.statut.payee')">Payée</option>
+              <option value="annulee" x-text="t('factures.statut.annulee')">Annulée</option>
             </select>
           </div>
         </div>
@@ -48,12 +52,12 @@
           <table>
             <thead>
               <tr>
-                <th>Numéro</th>
-                <th>Client</th>
-                <th>Véhicule</th>
-                <th>Émise le</th>
-                <th>Montant</th>
-                <th>Statut</th>
+                <th data-i18n="factures.th_numero">Numéro</th>
+                <th data-i18n="factures.th_client">Client</th>
+                <th data-i18n="factures.th_vehicule">Véhicule</th>
+                <th data-i18n="factures.th_emise">Émise le</th>
+                <th data-i18n="factures.th_montant">Montant</th>
+                <th data-i18n="factures.th_statut">Statut</th>
                 <th></th>
               </tr>
             </thead>
@@ -65,7 +69,7 @@
               </template>
               <template x-if="!loading && factures.length === 0">
                 <tr>
-                  <td colspan="7" class="empty-state">Aucune facture trouvée.</td>
+                  <td colspan="7" class="empty-state" x-text="t('factures.none')"></td>
                 </tr>
               </template>
               <template x-for="f in factures" :key="f.id">
@@ -82,17 +86,16 @@
                   <td>
                     <div class="flex gap-2" style="flex-wrap: wrap">
                       <button class="btn btn-secondary btn-sm" @click="downloadPdf(f)" :disabled="pdfLoadingId === f.id">
-                        <span x-text="pdfLoadingId === f.id ? 'PDF…' : 'PDF'"></span>
+                        <span x-text="pdfLoadingId === f.id ? t('factures.pdf_loading') : t('factures.pdf')"></span>
                       </button>
-                      <button class="btn btn-primary btn-sm" x-show="f.statut_paiement === 'en_attente'" @click="openPaiementModal(f)">
-                        Marquer payée
+                      <button class="btn btn-primary btn-sm" x-show="f.statut_paiement === 'en_attente'" @click="openPaiementModal(f)" x-text="t('factures.mark_paid')">
                       </button>
                       <button
                         class="btn btn-danger btn-sm"
                         x-show="['en_attente', 'payee'].includes(f.statut_paiement)"
                         @click="annulerFacture(f)"
+                        x-text="t('factures.annuler')"
                       >
-                        Annuler
                       </button>
                     </div>
                   </td>
@@ -105,11 +108,11 @@
         <div class="modal-overlay" x-show="paiementModalOpen" x-cloak @click.self="closePaiementModal()">
           <div class="modal" style="max-width: 380px">
             <div class="modal-header">
-              <h2>Marquer payée</h2>
+              <h2 x-text="t('factures.modal_paiement')"></h2>
               <button class="btn btn-ghost btn-icon" type="button" @click="closePaiementModal()">✕</button>
             </div>
 
-            <p class="text-secondary mb-4" style="font-size: var(--text-sm)" x-text="payingFacture ? `Facture ${payingFacture.numero_facture} — ${payingFacture.montant} MAD` : ''"></p>
+            <p class="text-secondary mb-4" style="font-size: var(--text-sm)" x-text="payingFacture ? t('factures.facture_montant', { num: payingFacture.numero_facture, montant: payingFacture.montant }) : ''"></p>
 
             <template x-if="paiementError">
               <div
@@ -120,20 +123,20 @@
 
             <form @submit.prevent="confirmPaiement()">
               <div class="form-group">
-                <label>Mode de paiement</label>
+                <label x-text="t('factures.f_mode')"></label>
                 <select class="input" x-model="modePaiement" required>
-                  <option value="">Sélectionner...</option>
-                  <option value="especes">Espèces</option>
-                  <option value="carte">Carte</option>
-                  <option value="virement">Virement</option>
-                  <option value="cheque">Chèque</option>
+                  <option value="" x-text="t('common.select')">Sélectionner...</option>
+                  <option value="especes" x-text="t('factures.mode.especes')">Espèces</option>
+                  <option value="carte" x-text="t('factures.mode.carte')">Carte</option>
+                  <option value="virement" x-text="t('factures.mode.virement')">Virement</option>
+                  <option value="cheque" x-text="t('factures.mode.cheque')">Chèque</option>
                 </select>
               </div>
 
               <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" @click="closePaiementModal()">Annuler</button>
+                <button type="button" class="btn btn-secondary" @click="closePaiementModal()" x-text="t('common.cancel')"></button>
                 <button type="submit" class="btn btn-primary" :disabled="saving">
-                  <span x-text="saving ? 'Enregistrement...' : 'Confirmer le paiement'"></span>
+                  <span x-text="saving ? t('common.saving') : t('factures.confirmer_paiement')"></span>
                 </button>
               </div>
             </form>
