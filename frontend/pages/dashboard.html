@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="/static/css/base.css" />
   <link rel="stylesheet" href="/static/css/components.css" />
   <script src="/static/js/theme.js"></script>
+  <script src="/static/i18n/fr.js"></script>
+  <script src="/static/i18n/ar.js"></script>
+  <script src="/static/js/i18n.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -15,39 +18,42 @@
 
     <div class="main-content">
       <div class="topbar">
-        <h1>Tableau de bord</h1>
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
-          <span id="theme-toggle-icon"></span>
-        </button>
+        <h1 data-i18n="dashboard.title">Tableau de bord</h1>
+        <div class="topbar-actions">
+          <button class="lang-toggle" onclick="toggleLang()" data-i18n="lang.toggle">العربية</button>
+          <button class="theme-toggle" onclick="toggleTheme()" data-i18n-aria="theme.toggle" aria-label="Changer de thème">
+            <span id="theme-toggle-icon"></span>
+          </button>
+        </div>
       </div>
 
       <div class="page-content">
         <div class="kpi-grid">
           <div class="kpi-card">
-            <div class="kpi-label">Taux d'occupation</div>
+            <div class="kpi-label" data-i18n="dashboard.taux_occupation">Taux d'occupation</div>
             <div class="kpi-value" id="kpi-taux-occupation">—</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Revenus du mois</div>
+            <div class="kpi-label" data-i18n="dashboard.revenus_mois">Revenus du mois</div>
             <div class="kpi-value" id="kpi-revenus-mois">—</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Véhicules disponibles</div>
+            <div class="kpi-label" data-i18n="dashboard.vehicules_disponibles">Véhicules disponibles</div>
             <div class="kpi-value" id="kpi-vehicules-disponibles">—</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Réservations en cours</div>
+            <div class="kpi-label" data-i18n="dashboard.reservations_en_cours">Réservations en cours</div>
             <div class="kpi-value" id="kpi-reservations-en-cours">—</div>
           </div>
         </div>
 
         <div class="dashboard-charts">
           <div class="card">
-            <div class="card-title">Revenus par mois</div>
+            <div class="card-title" data-i18n="dashboard.revenus_par_mois">Revenus par mois</div>
             <canvas id="chart-revenus" height="120"></canvas>
           </div>
           <div class="card">
-            <div class="card-title">Top véhicules loués</div>
+            <div class="card-title" data-i18n="dashboard.top_vehicules">Top véhicules loués</div>
             <div id="top-vehicules-container">
               <canvas id="chart-top-vehicules" height="120"></canvas>
             </div>

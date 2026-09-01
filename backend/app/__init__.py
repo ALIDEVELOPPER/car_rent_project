@@ -44,7 +44,13 @@ def create_app(config_name: str | None = None) -> Flask:
             return None
 
         path = request.path
-        if path.startswith("/api/licence") or path.startswith("/static/") or path.startswith("/assets/") or path == "/activation":
+        if (
+            path.startswith("/api/licence")
+            or path.startswith("/static/")
+            or path.startswith("/assets/")
+            or path == "/activation"
+            or path == "/api/parametres/langue"
+        ):
             return None
 
         try:

@@ -57,6 +57,22 @@ def test_update_agence_success(client, logged_in_admin):
     assert resp.json["nom"] == "Agence Atlas Car"
 
 
+def test_langue_endpoint_default_fr(client):
+    resp = client.get("/api/parametres/langue")
+    assert resp.status_code == 200
+    assert resp.json["langue"] == "fr"
+
+
+def test_update_agence_langue(client, logged_in_admin):
+    resp = client.put("/api/parametres/agence", json={"nom": "X", "langue": "ar"})
+    assert resp.status_code == 200
+    assert resp.json["langue"] == "ar"
+    assert client.get("/api/parametres/langue").json["langue"] == "ar"
+
+    resp = client.put("/api/parametres/agence", json={"langue": "xx"})
+    assert resp.status_code == 400
+
+
 def test_update_agence_conditions_contrat(client, logged_in_admin):
     resp = client.put(
         "/api/parametres/agence",

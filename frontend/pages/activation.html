@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="/static/css/base.css" />
   <link rel="stylesheet" href="/static/css/components.css" />
   <script src="/static/js/theme.js"></script>
+  <script src="/static/i18n/fr.js"></script>
+  <script src="/static/i18n/ar.js"></script>
+  <script src="/static/js/i18n.js"></script>
   <style>
     .login-page {
       min-height: 100vh;
@@ -63,7 +66,7 @@
       </div>
 
       <template x-if="checking">
-        <p class="blocked-message">Vérification de la licence en cours…</p>
+        <p class="blocked-message" x-text="t('licence.checking')"></p>
       </template>
 
       <template x-if="!checking">
@@ -78,14 +81,15 @@
             @click="recheck"
             :disabled="loading"
           >
-            <span x-text="loading ? 'Vérification…' : 'Réessayer'"></span>
+            <span x-text="loading ? t('licence.retrying') : t('licence.retry')"></span>
           </button>
         </div>
       </template>
     </div>
   </div>
 
-  <button class="theme-toggle theme-toggle-fixed" onclick="toggleTheme()" aria-label="Changer de thème">
+  <button class="lang-toggle lang-toggle-fixed" onclick="toggleLang()" data-i18n="lang.toggle">العربية</button>
+  <button class="theme-toggle theme-toggle-fixed" onclick="toggleTheme()" data-i18n-aria="theme.toggle" aria-label="Changer de thème">
     <span id="theme-toggle-icon"></span>
   </button>
 

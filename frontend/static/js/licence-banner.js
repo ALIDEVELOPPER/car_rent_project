@@ -8,10 +8,13 @@
 (function () {
   var POLL_MS = 5 * 60 * 1000; // 5 min
 
-  function frenchDate(iso) {
+  var tr = window.t || function (k) { return k; };
+
+  function localeDate(iso) {
     if (!iso) return "";
+    var loc = (window.currentLang && window.currentLang() === "ar") ? "ar-MA" : "fr-FR";
     try {
-      return new Date(iso).toLocaleString("fr-FR", {
+      return new Date(iso).toLocaleString(loc, {
         day: "numeric",
         month: "long",
         hour: "2-digit",
@@ -37,18 +40,11 @@
 
     var text;
     if (urgent) {
-      text =
-        "Votre essai gratuit est terminé. L'accès sera bloqué le " +
-        frenchDate(state.bloque_le) +
-        ". Contactez-nous pour activer : ";
+      text = tr("licence.trial_grace_banner", { date: localeDate(state.bloque_le) });
     } else if (typeof days === "number") {
-      text =
-        "Version d'essai gratuite — " +
-        days +
-        (days > 1 ? " jours restants" : " jour restant") +
-        ". ";
+      text = tr(days > 1 ? "licence.trial_banner_many" : "licence.trial_banner_one", { days: days });
     } else {
-      text = "Version d'essai gratuite. ";
+      text = tr("licence.trial_banner_many", { days: "" });
     }
 
     var bar = document.createElement("div");

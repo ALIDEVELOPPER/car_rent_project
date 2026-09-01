@@ -9,9 +9,13 @@ function loginForm() {
       this.loading = true;
       try {
         await Api.post("/auth/login", { email: this.email, mot_de_passe: this.motDePasse });
+        try {
+          const { langue } = await Api.get("/parametres/langue");
+          window.rememberLang(langue);
+        } catch (_) {}
         window.location.href = "/";
       } catch (err) {
-        this.error = err.message || "Une erreur est survenue";
+        this.error = err.message || window.t("common.error_generic");
       } finally {
         this.loading = false;
       }

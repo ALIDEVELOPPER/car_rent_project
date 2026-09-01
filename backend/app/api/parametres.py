@@ -24,7 +24,18 @@ def _serialize_agence(agence: Agence) -> dict:
         "logo_url": agence.logo_url,
         "mentions_legales": agence.mentions_legales,
         "conditions_contrat": agence.conditions_contrat,
+        "langue": agence.langue,
     }
+
+
+LANGUES_SUPPORTEES = ("fr", "ar")
+
+
+@bp.get("/langue")
+def get_langue():
+    """Langue de l'interface, accessible sans authentification (écrans login / setup)."""
+    agence = db.session.execute(db.select(Agence)).scalar_one_or_none()
+    return jsonify({"langue": agence.langue if agence else "fr"})
 
 
 @bp.get("/agence")
@@ -42,7 +53,10 @@ def update_agence():
     if "nom" in data and not data["nom"]:
         return jsonify({"error": "Le nom de l'agence ne peut pas être vide"}), 400
 
-    for field in ("nom", "adresse", "telephone", "email", "mentions_legales", "conditions_contrat"):
+    if "langue" in data and data["langue"] not in LANGUES_SUPPORTEES:
+        return jsonify({"error": f"Langue non supportée : {data['langue']}"}), 400
+
+    for field in ("nom", "adresse", "telephone", "email", "mentions_legales", "conditions_contrat", "langue"):
         if field in data:
             setattr(agence, field, data[field])
 

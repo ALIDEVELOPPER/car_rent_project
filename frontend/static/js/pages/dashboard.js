@@ -66,7 +66,7 @@ async function loadTopVehiculesChart() {
       topVehiculesChart.destroy();
       topVehiculesChart = null;
     }
-    container.innerHTML = '<p class="empty-state">Aucune réservation enregistrée pour le moment.</p>';
+    container.innerHTML = `<p class="empty-state">${window.t("dashboard.aucune_reservation")}</p>`;
     return;
   }
 

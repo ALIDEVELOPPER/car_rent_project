@@ -557,3 +557,84 @@ tbody tr:hover {
 .text-secondary {
   color: var(--color-text-secondary);
 }
+
+/* ---------- RTL (arabe) ---------- */
+
+[dir="rtl"] body,
+[dir="rtl"] input,
+[dir="rtl"] select,
+[dir="rtl"] textarea,
+[dir="rtl"] button {
+  font-family: "Segoe UI", "Noto Sans Arabic", "Tahoma", system-ui, sans-serif;
+}
+
+[dir="rtl"] .sidebar {
+  border-right: none;
+  border-left: 1px solid var(--color-border);
+}
+
+[dir="rtl"] thead th {
+  text-align: right;
+}
+
+[dir="rtl"] .toast-container {
+  right: auto;
+  left: var(--space-6);
+}
+
+[dir="rtl"] .toast-success,
+[dir="rtl"] .toast-error {
+  border-left: none;
+  border-right: 3px solid var(--color-success);
+}
+
+[dir="rtl"] .toast-error {
+  border-right-color: var(--color-danger);
+}
+
+[dir="rtl"] .theme-toggle-fixed {
+  right: auto;
+  left: var(--space-4);
+}
+
+/* Le compte à rebours latin (dates, montants) reste lisible dans un contexte RTL */
+[dir="rtl"] .kpi-value {
+  direction: ltr;
+  text-align: right;
+}
+
+/* ---------- Barre d'actions (langue + thème) ---------- */
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.lang-toggle {
+  width: auto;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.lang-toggle:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.lang-toggle-fixed {
+  position: fixed;
+  top: var(--space-4);
+  right: calc(var(--space-4) + 44px);
+}
+[dir="rtl"] .lang-toggle-fixed {
+  right: auto;
+  left: calc(var(--space-4) + 44px);
+}

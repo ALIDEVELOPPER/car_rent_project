@@ -1,10 +1,10 @@
 const SIDEBAR_LINKS = [
-  { key: "", label: "Tableau de bord", href: "/", icon: "home" },
-  { key: "clients", label: "Clients", href: "/clients", icon: "users" },
-  { key: "vehicules", label: "Véhicules", href: "/vehicules", icon: "car" },
-  { key: "reservations", label: "Réservations", href: "/reservations", icon: "calendar" },
-  { key: "factures", label: "Factures", href: "/factures", icon: "receipt" },
-  { key: "parametres", label: "Paramètres", href: "/parametres", icon: "settings", adminOnly: true },
+  { key: "", i18n: "nav.dashboard", href: "/", icon: "home" },
+  { key: "clients", i18n: "nav.clients", href: "/clients", icon: "users" },
+  { key: "vehicules", i18n: "nav.vehicules", href: "/vehicules", icon: "car" },
+  { key: "reservations", i18n: "nav.reservations", href: "/reservations", icon: "calendar" },
+  { key: "factures", i18n: "nav.factures", href: "/factures", icon: "receipt" },
+  { key: "parametres", i18n: "nav.parametres", href: "/parametres", icon: "settings", adminOnly: true },
 ];
 
 const SIDEBAR_ICONS = {
@@ -36,10 +36,12 @@ function renderSidebar(activeKey, user) {
   const root = document.getElementById("sidebar-root");
   if (!root) return;
 
+  const tr = window.t || ((k) => k);
+
   const links = SIDEBAR_LINKS.filter((link) => !link.adminOnly || user.role === "admin")
     .map((link) => {
       const isActive = link.key === activeKey;
-      return `<a class="sidebar-link${isActive ? " active" : ""}" href="${link.href}">${SIDEBAR_ICONS[link.icon]}<span>${link.label}</span></a>`;
+      return `<a class="sidebar-link${isActive ? " active" : ""}" href="${link.href}">${SIDEBAR_ICONS[link.icon]}<span>${tr(link.i18n)}</span></a>`;
     })
     .join("");
 
@@ -47,7 +49,7 @@ function renderSidebar(activeKey, user) {
     <aside class="sidebar">
       <div class="sidebar-brand">
         <span class="logo-mark">AL</span>
-        <span>Agence Location</span>
+        <span>${tr("app.name")}</span>
       </div>
       <nav class="sidebar-nav">${links}</nav>
       <div class="sidebar-footer">
@@ -59,7 +61,7 @@ function renderSidebar(activeKey, user) {
           </div>
         </div>
         <button class="sidebar-link" id="logout-btn" type="button" style="width:100%; border:none; background:transparent; cursor:pointer;">
-          ${SIDEBAR_ICONS.logout}<span>Déconnexion</span>
+          ${SIDEBAR_ICONS.logout}<span>${tr("nav.logout")}</span>
         </button>
       </div>
     </aside>

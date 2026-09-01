@@ -10,7 +10,7 @@ function setupForm() {
       this.error = "";
 
       if (this.motDePasse !== this.motDePasseConfirm) {
-        this.error = "Les mots de passe ne correspondent pas";
+        this.error = window.t("setup.mismatch");
         return;
       }
 
@@ -23,7 +23,7 @@ function setupForm() {
         });
         window.location.href = "/login";
       } catch (err) {
-        this.error = err.message || "Une erreur est survenue";
+        this.error = err.message || window.t("common.error_generic");
       } finally {
         this.loading = false;
       }
