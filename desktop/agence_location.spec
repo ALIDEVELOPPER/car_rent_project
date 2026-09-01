@@ -6,6 +6,8 @@ PROJECT_ROOT = os.path.dirname(SPECPATH)
 BACKEND_DIR = os.path.join(PROJECT_ROOT, "backend")
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
 MIGRATIONS_DIR = os.path.join(BACKEND_DIR, "migrations")
+# Polices arabes (Amiri) embarquées pour les PDF en arabe
+ASSETS_DIR = os.path.join(BACKEND_DIR, "app", "assets")
 
 # pyinstaller s'exécute nativement sur chaque OS cible (impossible de cross-compiler),
 # donc sys.platform ici reflète toujours le bon système : ce .spec unique sert pour
@@ -14,6 +16,10 @@ hiddenimports = [
     "logging.config",
     "alembic",
     "sqlalchemy.dialects.sqlite",
+    # Mise en forme du texte arabe pour les PDF
+    "arabic_reshaper",
+    "bidi",
+    "bidi.algorithm",
 ]
 
 if sys.platform.startswith("linux"):
@@ -38,6 +44,7 @@ a = Analysis(
     datas=[
         (FRONTEND_DIR, "frontend"),
         (MIGRATIONS_DIR, "migrations"),
+        (ASSETS_DIR, os.path.join("app", "assets")),
     ],
     hiddenimports=hiddenimports,
     hookspath=[],

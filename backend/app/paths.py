@@ -21,6 +21,13 @@ def get_migrations_dir() -> Path:
     return Path(__file__).resolve().parent.parent / "migrations"
 
 
+def get_assets_dir() -> Path:
+    """Ressources embarquées (polices PDF, etc.)."""
+    if is_frozen():
+        return Path(sys._MEIPASS) / "app" / "assets"
+    return Path(__file__).resolve().parent / "assets"
+
+
 def get_app_data_dir() -> Path:
     """Dossier persistant pour la base de données, les uploads et la clé secrète.
 

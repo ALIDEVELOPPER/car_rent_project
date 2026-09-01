@@ -88,6 +88,20 @@ def test_contrat_pdf_download(client, logged_in_employe, client_obj, vehicule):
     assert resp.data[:5] == b"%PDF-"
 
 
+def test_contrat_pdf_arabic(client, logged_in_employe, client_obj, vehicule, db):
+    from app.services.agence import get_or_create_agence
+
+    agence = get_or_create_agence()
+    agence.langue = "ar"
+    db.session.commit()
+
+    created = _create_reservation(client, client_obj, vehicule).json
+    resp = client.get(f"/api/reservations/{created['id']}/contrat/pdf")
+    assert resp.status_code == 200
+    assert resp.data[:5] == b"%PDF-"
+    assert len(resp.data) > 2000
+
+
 def test_contrat_pdf_requires_login(client):
     resp = client.get("/api/reservations/1/contrat/pdf")
     assert resp.status_code == 401
