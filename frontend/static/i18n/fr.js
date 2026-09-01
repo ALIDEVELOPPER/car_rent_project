@@ -41,6 +41,12 @@ window.I18N.fr = {
 
   login: {
     title: "Connexion",
+    subtitle: "Accédez à l'espace de votre agence.",
+    brand_title: "La gestion de votre agence de location, simplifiée.",
+    brand_sub: "Clients, flotte, réservations, contrats et factures — en français comme en arabe, même hors connexion.",
+    stat_local: "local & privé",
+    stat_trial: "d'essai gratuit",
+    stat_bi: "bilingue",
     email: "Email",
     password: "Mot de passe",
     submit: "Se connecter",
@@ -48,6 +54,7 @@ window.I18N.fr = {
   },
 
   setup: {
+    brand_note: "Cette étape ne se fait qu'une seule fois.",
     title: "Configuration initiale",
     subtitle: "Premier lancement — créez le compte administrateur",
     name: "Votre nom",

@@ -12,98 +12,78 @@
   <script src="/static/i18n/ar.js"></script>
   <script src="/static/js/i18n.js"></script>
   <style>
-    .login-page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--space-4);
+    .auth { display: flex; min-height: 100vh; }
+    .auth-brand {
+      position: relative; width: 44%; max-width: 560px; overflow: hidden; color: #fff;
+      padding: 56px; display: flex; flex-direction: column; justify-content: space-between;
+      background: linear-gradient(150deg, #4f46e5 0%, #6d28d9 55%, #7c3aed 100%);
     }
-    .login-card {
-      width: 100%;
-      max-width: 420px;
-    }
-    .login-brand {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      justify-content: center;
-      margin-bottom: var(--space-2);
-    }
-    .login-brand .logo-mark {
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-md);
-      background: var(--color-primary);
-      color: var(--color-primary-contrast);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-    }
-    .login-subtitle {
-      text-align: center;
-      color: var(--color-text-secondary);
-      font-size: var(--text-sm);
-      margin-bottom: var(--space-6);
-    }
-    .login-error {
-      background: var(--color-danger-bg);
-      color: var(--color-danger);
-      border-radius: var(--radius-sm);
-      padding: var(--space-3);
-      font-size: var(--text-sm);
-      margin-bottom: var(--space-4);
-    }
-    .theme-toggle-fixed {
-      position: fixed;
-      top: var(--space-4);
-      right: var(--space-4);
-    }
+    .auth-brand .blob { position: absolute; border-radius: 50%; }
+    .auth-brand .blob1 { width: 520px; height: 520px; right: -220px; top: -160px; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.22), rgba(255,255,255,0) 60%); }
+    .auth-brand .blob2 { width: 360px; height: 360px; left: -160px; bottom: -140px; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.14), rgba(255,255,255,0) 62%); }
+    .auth-brand .logo { display: flex; align-items: center; gap: 12px; position: relative; }
+    .auth-brand .logo .mark { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,.16); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; }
+    .auth-brand h1 { margin: 0 0 14px; font-size: 32px; line-height: 1.22; font-weight: 800; letter-spacing: -.02em; text-wrap: balance; color: #fff; }
+    .auth-brand p { margin: 0; font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.82); max-width: 380px; }
+    .auth-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background: var(--color-bg); position: relative; }
+    .auth-form .toggles { position: absolute; top: 26px; right: 28px; display: flex; gap: 8px; }
+    .auth-card { width: 100%; max-width: 400px; }
+    .auth-card h2 { font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; }
+    .auth-card .sub { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 28px; }
+    .login-error { background: var(--color-danger-bg); color: var(--color-danger); border-radius: var(--radius-md); padding: 12px 14px; font-size: 13px; font-weight: 500; margin-bottom: 16px; }
+    @media (max-width: 820px) { .auth-brand { display: none; } }
+    [dir="rtl"] .auth-form .toggles { right: auto; left: 28px; }
   </style>
 </head>
 <body>
-  <div class="login-page" x-data="setupForm()">
-    <div class="login-card card">
-      <div class="login-brand">
-        <span class="logo-mark">K</span>
-        <h1 style="font-size: var(--text-lg)" data-i18n="app.name">Krilia</h1>
+  <div class="auth" x-data="setupForm()">
+    <aside class="auth-brand">
+      <span class="blob blob1"></span><span class="blob blob2"></span>
+      <div class="logo"><span class="mark">K</span><span style="font-weight:700; font-size:18px;">Krilia</span></div>
+      <div style="position: relative;">
+        <h1 data-i18n="login.brand_title">La gestion de votre agence de location, simplifiée.</h1>
+        <p data-i18n="login.brand_sub">Clients, flotte, réservations, contrats et factures — en français comme en arabe, même hors connexion.</p>
       </div>
-      <p class="login-subtitle" data-i18n="setup.subtitle">Premier lancement — créez le compte administrateur</p>
+      <div style="position: relative; font-size: 13px; color: rgba(255,255,255,.72);" data-i18n="setup.brand_note">Cette étape ne se fait qu'une seule fois.</div>
+    </aside>
 
-      <template x-if="error">
-        <div class="login-error" x-text="error"></div>
-      </template>
+    <div class="auth-form">
+      <div class="toggles">
+        <button class="lang-toggle" onclick="toggleLang()" data-i18n="lang.toggle">العربية</button>
+        <button class="theme-toggle" onclick="toggleTheme()" data-i18n-aria="theme.toggle" aria-label="Changer de thème"><span id="theme-toggle-icon"></span></button>
+      </div>
 
-      <form @submit.prevent="submit" onsubmit="return false">
-        <div class="form-group">
-          <label for="nom" data-i18n="setup.name">Votre nom</label>
-          <input class="input" type="text" id="nom" x-model="nom" required autofocus />
-        </div>
-        <div class="form-group">
-          <label for="email" data-i18n="setup.email">Email</label>
-          <input class="input" type="email" id="email" x-model="email" required />
-        </div>
-        <div class="form-group">
-          <label for="password" data-i18n="setup.password">Mot de passe</label>
-          <input class="input" type="password" id="password" x-model="motDePasse" minlength="8" required />
-        </div>
-        <div class="form-group">
-          <label for="password-confirm" data-i18n="setup.password_confirm">Confirmer le mot de passe</label>
-          <input class="input" type="password" id="password-confirm" x-model="motDePasseConfirm" minlength="8" required />
-        </div>
-        <button class="btn btn-primary" type="submit" style="width: 100%" :disabled="loading">
-          <span class="spinner" x-show="loading" style="border-top-color: #fff"></span>
-          <span x-text="loading ? t('setup.submitting') : t('setup.submit')"></span>
-        </button>
-      </form>
+      <div class="auth-card">
+        <h2 data-i18n="setup.title">Configuration initiale</h2>
+        <p class="sub" data-i18n="setup.subtitle">Premier lancement — créez le compte administrateur</p>
+
+        <template x-if="error"><div class="login-error" x-text="error"></div></template>
+
+        <form @submit.prevent="submit" onsubmit="return false">
+          <div class="form-group">
+            <label for="nom" data-i18n="setup.name">Votre nom</label>
+            <input class="input" type="text" id="nom" x-model="nom" required autofocus />
+          </div>
+          <div class="form-group">
+            <label for="email" data-i18n="setup.email">Email</label>
+            <input class="input" type="email" id="email" x-model="email" required />
+          </div>
+          <div class="form-group">
+            <label for="password" data-i18n="setup.password">Mot de passe</label>
+            <input class="input" type="password" id="password" x-model="motDePasse" minlength="8" required />
+          </div>
+          <div class="form-group">
+            <label for="password-confirm" data-i18n="setup.password_confirm">Confirmer le mot de passe</label>
+            <input class="input" type="password" id="password-confirm" x-model="motDePasseConfirm" minlength="8" required />
+          </div>
+          <button class="btn btn-primary" type="submit" style="width: 100%; margin-top: 4px;" :disabled="loading">
+            <span class="spinner" x-show="loading" style="border-top-color: #fff"></span>
+            <span x-text="loading ? t('setup.submitting') : t('setup.submit')"></span>
+          </button>
+        </form>
+      </div>
     </div>
   </div>
-
-  <button class="lang-toggle lang-toggle-fixed" onclick="toggleLang()" data-i18n="lang.toggle">العربية</button>
-  <button class="theme-toggle theme-toggle-fixed" onclick="toggleTheme()" data-i18n-aria="theme.toggle" aria-label="Changer de thème">
-    <span id="theme-toggle-icon"></span>
-  </button>
 
   <script src="/static/vendor/alpinejs/alpine.min.js" defer></script>
   <script src="/static/js/api.js"></script>

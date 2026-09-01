@@ -32,7 +32,11 @@ function sidebarInitials(nom) {
     .toUpperCase();
 }
 
-function renderSidebar(activeKey, user) {
+function sidebarEscape(s) {
+  return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function renderSidebar(activeKey, user, agence) {
   const root = document.getElementById("sidebar-root");
   if (!root) return;
 
@@ -45,11 +49,18 @@ function renderSidebar(activeKey, user) {
     })
     .join("");
 
+  const nomAgence = (agence && agence.nom) || tr("app.name");
+  const ville = agence && agence.adresse ? String(agence.adresse).split(",").pop().trim() : "";
+  const mark = (sidebarInitials(nomAgence).charAt(0) || "K").toUpperCase();
+
   root.innerHTML = `
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <span class="logo-mark">AL</span>
-        <span>${tr("app.name")}</span>
+        <span class="logo-mark">${sidebarEscape(mark)}</span>
+        <span style="line-height:1.3; overflow:hidden;">
+          <span style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${sidebarEscape(nomAgence)}</span>
+          ${ville ? `<span style="display:block; font-size:12px; font-weight:500; color:var(--color-text-muted);">${sidebarEscape(ville)}</span>` : ""}
+        </span>
       </div>
       <nav class="sidebar-nav">${links}</nav>
       <div class="sidebar-footer">
