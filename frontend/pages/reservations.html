@@ -214,6 +214,15 @@
               </div>
 
               <div class="form-group">
+                <label x-text="t('reservations.f_source')"></label>
+                <select class="input" x-model="form.source">
+                  <template x-for="s in ['agence', 'telephone', 'whatsapp', 'site_web', 'partenaire']" :key="s">
+                    <option :value="s" x-text="t('reservations.source.' + s)"></option>
+                  </template>
+                </select>
+              </div>
+
+              <div class="form-group">
                 <label x-text="t('reservations.f_notes')"></label>
                 <textarea class="input" rows="2" x-model="form.notes"></textarea>
               </div>

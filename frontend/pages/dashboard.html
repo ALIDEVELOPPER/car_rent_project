@@ -119,6 +119,7 @@
     .renta-name span { display: block; font-size: 11px; font-weight: 500; color: var(--color-text-muted); }
     .renta-track { height: 22px; border-radius: 6px; background: var(--color-neutral-bg); overflow: hidden; }
     .renta-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--c-flotte), var(--c-flotte-2)); min-width: 3px; }
+    .renta-fill.neg { background: linear-gradient(90deg, var(--c-retard), #f97316); }
     .renta-ca { font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; }
 
     /* ---- indicateurs clés ---- */
@@ -207,10 +208,17 @@
                   </span>
                   <span x-text="t('dashboard.vs_mois_dernier')"></span>
                 </div>
-                <div class="kpi-spark" x-show="revenus6.length">
+                <div class="kpi-spark" x-show="revenus6.length && !data.revenus.objectif">
                   <template x-for="(v, i) in revenus6" :key="i">
                     <div :class="i === revenus6.length - 1 ? 'last' : ''" :style="`height:${Math.max(8, (v / sparkMax) * 100)}%`"></div>
                   </template>
+                </div>
+                <div x-show="data.revenus.objectif" style="margin-top: auto;">
+                  <div style="display:flex; justify-content:space-between; gap:6px; font-size:11px; color: var(--color-text-muted); margin-bottom:4px;">
+                    <b style="color: var(--c-argent);" x-text="t('dashboard.objectif_atteint', { pct: Math.round(data.revenus.objectif_pct || 0) })"></b>
+                    <span x-show="data.revenus.projection_mois" x-text="t('dashboard.projection', { montant: fmt(data.revenus.projection_mois), devise })"></span>
+                  </div>
+                  <div class="kpi-bar" style="margin-top:0;"><div :style="`width:${Math.min(100, data.revenus.objectif_pct || 0)}%`"></div></div>
                 </div>
               </div>
 
@@ -356,16 +364,17 @@
                   <span class="w-title" x-text="t('dashboard.rentabilite')"></span>
                   <span class="sub" x-text="t('dashboard.rentabilite_sub')"></span>
                 </div>
-                <template x-if="!data.ca_par_vehicule.length">
+                <template x-if="!data.rentabilite.length">
                   <div class="ag-empty" x-text="t('dashboard.aucune_facture')"></div>
                 </template>
-                <template x-for="v in data.ca_par_vehicule" :key="v.vehicule_id">
+                <template x-for="v in data.rentabilite" :key="v.vehicule_id">
                   <div class="renta-row">
                     <div class="renta-name" x-text="v.vehicule"><span x-text="v.immatriculation"></span></div>
-                    <div class="renta-track"><div class="renta-fill" :style="`width:${caPct(v.ca)}%`"></div></div>
+                    <div class="renta-track"><div class="renta-fill" :class="Number(v.marge) < 0 ? 'neg' : ''" :style="`width:${margePct(v.marge)}%`"></div></div>
                     <div class="renta-ca">
-                      <span x-text="fmt(v.ca) + ' ' + devise"></span>
-                      <span style="display:block; font-size:11px; font-weight:600; color: var(--color-text-muted);" x-text="t('dashboard.nb_locations', { n: v.nb_locations })"></span>
+                      <span x-text="fmt(v.marge) + ' ' + devise"></span>
+                      <span style="display:block; font-size:11px; font-weight:600; color: var(--color-text-muted);"
+                        x-text="t('dashboard.ca_court') + ' ' + fmt(v.ca) + ' · ' + t('dashboard.charges') + ' ' + fmt(v.charges)"></span>
                     </div>
                   </div>
                 </template>
@@ -391,6 +400,25 @@
                     <div class="ind-value" x-text="data.indicateurs.nb_locations_12m"></div>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- ===== Canaux d'acquisition ===== -->
+            <div class="panel dash-section" x-show="data.sources && data.sources.length">
+              <div class="panel-head">
+                <span class="w-title" x-text="t('dashboard.canaux')"></span>
+                <span class="sub" x-text="t('dashboard.canaux_sub')"></span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <template x-for="s in data.sources" :key="s.source">
+                  <div style="display:grid; grid-template-columns: 140px 1fr 40px; align-items:center; gap:12px;">
+                    <span style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" x-text="t('reservations.source.' + s.source)"></span>
+                    <div class="renta-track" style="height:16px;">
+                      <div class="renta-fill" :style="`width:${Math.max(4, s.pct)}%; background: linear-gradient(90deg, var(--c-activite), var(--c-activite-2))`"></div>
+                    </div>
+                    <span style="font-size:12px; font-weight:800; text-align:end; font-variant-numeric: tabular-nums;" x-text="s.nombre"></span>
+                  </div>
+                </template>
               </div>
             </div>
 

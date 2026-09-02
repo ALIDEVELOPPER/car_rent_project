@@ -39,6 +39,9 @@ function vehiculesPage() {
     formError: "",
     saving: false,
     currentUser: null,
+    depenses: [],
+    depenseForm: { type: "entretien", montant: "", date_depense: "", note: "" },
+    depenseSaving: false,
 
     async init() {
       this.currentUser = await requireAuth("vehicules");
@@ -81,7 +84,52 @@ function vehiculesPage() {
       this.editing = null;
       this.form = emptyVehiculeForm();
       this.formError = "";
+      this.depenses = [];
+      this.resetDepenseForm();
       this.modalOpen = true;
+    },
+
+    resetDepenseForm() {
+      this.depenseForm = { type: "entretien", montant: "", date_depense: new Date().toISOString().slice(0, 10), note: "" };
+    },
+
+    get depensesTotal() {
+      return this.depenses.reduce((s, d) => s + Number(d.montant), 0).toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+    },
+
+    async loadDepenses(vehiculeId) {
+      try {
+        this.depenses = await Api.get(`/vehicules/${vehiculeId}/depenses`);
+      } catch (err) {
+        this.depenses = [];
+      }
+    },
+
+    async ajouterDepense() {
+      if (!this.editing) return;
+      if (!this.depenseForm.montant || !this.depenseForm.date_depense) return;
+      this.depenseSaving = true;
+      try {
+        await Api.post(`/vehicules/${this.editing.id}/depenses`, this.depenseForm);
+        showToast(t("vehicules.dep_t_cree"));
+        await this.loadDepenses(this.editing.id);
+        this.resetDepenseForm();
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        this.depenseSaving = false;
+      }
+    },
+
+    async supprimerDepense(id) {
+      if (!confirm(t("vehicules.dep_confirm_suppr"))) return;
+      try {
+        await Api.del(`/depenses/${id}`);
+        showToast(t("vehicules.dep_t_supprimee"));
+        await this.loadDepenses(this.editing.id);
+      } catch (err) {
+        showToast(err.message, "error");
+      }
     },
 
     openEdit(vehicule) {
@@ -105,7 +153,10 @@ function vehiculesPage() {
         prochaine_vidange_km: vehicule.prochaine_vidange_km ?? "",
       };
       this.formError = "";
+      this.depenses = [];
+      this.resetDepenseForm();
       this.modalOpen = true;
+      this.loadDepenses(vehicule.id);
     },
 
     closeModal() {

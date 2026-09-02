@@ -2,12 +2,14 @@ from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 from app.extensions import db
-from app.models import Client, Facture, Reservation, Vehicule
+from app.models import Client, DepenseVehicule, Facture, Reservation, Vehicule
 from app.models.enums import (
+    SourceReservation,
     StatutCaution,
     StatutPaiement,
     StatutReservation,
     StatutVehicule,
+    TypeDepense,
 )
 
 
@@ -214,36 +216,91 @@ def compute_indicateurs_cles(reference_date: date) -> dict:
     }
 
 
-def compute_ca_par_vehicule(reference_date: date, limit: int = 6) -> list[dict]:
-    """Chiffre d'affaires facturé par véhicule sur les 12 derniers mois,
-    du plus rentable au moins rentable."""
-    debut = _to_datetime_utc(_douze_mois_avant(reference_date))
-    ca = db.func.coalesce(db.func.sum(Facture.montant), 0).label("ca")
-    nb = db.func.count(Facture.id).label("nb")
-    rows = db.session.execute(
+def compute_rentabilite_vehicules(reference_date: date, limit: int = 6) -> list[dict]:
+    """Rentabilité par véhicule sur les 12 derniers mois : CA facturé,
+    charges d'exploitation (hors achat) et marge nette. Trié par marge."""
+    debut = _douze_mois_avant(reference_date)
+    debut_dt = _to_datetime_utc(debut)
+
+    ca_rows = db.session.execute(
         db.select(
-            Vehicule.id, Vehicule.marque, Vehicule.modele, Vehicule.immatriculation, ca, nb
+            Vehicule.id,
+            Vehicule.marque,
+            Vehicule.modele,
+            Vehicule.immatriculation,
+            db.func.coalesce(db.func.sum(Facture.montant), 0),
+            db.func.count(Facture.id),
         )
         .join(Reservation, Reservation.vehicule_id == Vehicule.id)
         .join(Facture, Facture.reservation_id == Reservation.id)
         .filter(
             Facture.statut_paiement != StatutPaiement.ANNULEE,
-            Facture.date_emission >= debut,
+            Facture.date_emission >= debut_dt,
         )
         .group_by(Vehicule.id)
-        .order_by(ca.desc())
-        .limit(limit)
     ).all()
-    return [
+
+    charges_rows = db.session.execute(
+        db.select(
+            DepenseVehicule.vehicule_id,
+            db.func.coalesce(db.func.sum(DepenseVehicule.montant), 0),
+        )
+        .filter(
+            DepenseVehicule.type != TypeDepense.ACHAT,
+            DepenseVehicule.date_depense >= debut,
+        )
+        .group_by(DepenseVehicule.vehicule_id)
+    ).all()
+    charges_par_vehicule = {vid: montant for vid, montant in charges_rows}
+
+    resultats = []
+    for vid, marque, modele, immat, ca, nb in ca_rows:
+        charges = charges_par_vehicule.get(vid, 0)
+        resultats.append(
+            {
+                "vehicule_id": vid,
+                "vehicule": f"{marque} {modele}",
+                "immatriculation": immat,
+                "ca": str(Decimal(ca)),
+                "charges": str(Decimal(charges)),
+                "marge": str(Decimal(ca) - Decimal(charges)),
+                "nb_locations": nb,
+            }
+        )
+    resultats.sort(key=lambda r: Decimal(r["marge"]), reverse=True)
+    return resultats[:limit]
+
+
+def compute_sources_acquisition(reference_date: date, horizon_jours: int = 90) -> list[dict]:
+    """Répartition des réservations par canal d'acquisition sur la période récente."""
+    debut = reference_date - timedelta(days=horizon_jours)
+    rows = db.session.execute(
+        db.select(Reservation.source, db.func.count(Reservation.id))
+        .filter(
+            Reservation.statut != StatutReservation.ANNULEE,
+            Reservation.date_debut >= debut,
+        )
+        .group_by(Reservation.source)
+    ).all()
+    total = sum(n for _, n in rows)
+    resultats = [
         {
-            "vehicule_id": row.id,
-            "vehicule": f"{row.marque} {row.modele}",
-            "immatriculation": row.immatriculation,
-            "ca": str(row.ca),
-            "nb_locations": row.nb,
+            "source": source.value if source is not None else "agence",
+            "nombre": n,
+            "pct": round(n / total * 100) if total else 0,
         }
-        for row in rows
+        for source, n in rows
     ]
+    # fusionne les lignes "agence" (source explicite + valeurs nulles)
+    fusion: dict[str, dict] = {}
+    for item in resultats:
+        cle = item["source"]
+        if cle in fusion:
+            fusion[cle]["nombre"] += item["nombre"]
+            fusion[cle]["pct"] += item["pct"]
+        else:
+            fusion[cle] = item
+    return sorted(fusion.values(), key=lambda i: i["nombre"], reverse=True)
 
 
 def compute_cautions_a_restituer() -> list[dict]:

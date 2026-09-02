@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 
 from app.extensions import db
 from app.models import Client, Reservation, Vehicule
-from app.models.enums import StatutCaution, StatutReservation
+from app.models.enums import SourceReservation, StatutCaution, StatutReservation
 from app.services.availability import is_vehicule_available, vehicule_reservable
 from app.services.contract import contrat_disponible, render_contrat_pdf
 from app.services.invoicing import create_facture_for_reservation
@@ -35,6 +35,7 @@ def _serialize_reservation(reservation: Reservation) -> dict:
         "caution_retenue": str(reservation.caution_retenue) if reservation.caution_retenue is not None else None,
         "caution_note": reservation.caution_note,
         "lieu_prise_en_charge": reservation.lieu_prise_en_charge,
+        "source": reservation.source.value if reservation.source else None,
         "notes": reservation.notes,
         "created_at": reservation.created_at.isoformat(),
         "facture_id": reservation.facture.id if reservation.facture else None,
@@ -58,6 +59,15 @@ def _parse_date(raw, field_name: str) -> date:
         return date.fromisoformat(raw)
     except (TypeError, ValueError):
         raise ValueError(f"Date invalide pour '{field_name}' : {raw!r}") from None
+
+
+def _parse_source(raw) -> SourceReservation | None:
+    if raw in (None, ""):
+        return None
+    try:
+        return SourceReservation(raw)
+    except ValueError:
+        raise ValueError(f"Canal d'acquisition inconnu : {raw}") from None
 
 
 def _parse_heure(raw) -> str | None:
@@ -125,6 +135,7 @@ def create_reservation():
         caution = _parse_caution(data.get("caution"))
         heure_debut = _parse_heure(data.get("heure_debut"))
         heure_fin = _parse_heure(data.get("heure_fin"))
+        source = _parse_source(data.get("source"))
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
@@ -143,6 +154,7 @@ def create_reservation():
         heure_debut=heure_debut,
         heure_fin=heure_fin,
         lieu_prise_en_charge=(data.get("lieu_prise_en_charge") or None),
+        source=source,
         notes=data.get("notes"),
     )
     db.session.add(reservation)
@@ -224,6 +236,12 @@ def update_reservation(reservation_id):
 
     if "lieu_prise_en_charge" in data:
         reservation.lieu_prise_en_charge = data["lieu_prise_en_charge"] or None
+
+    if "source" in data:
+        try:
+            reservation.source = _parse_source(data["source"])
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
 
     for champ in ("heure_debut", "heure_fin"):
         if champ in data:

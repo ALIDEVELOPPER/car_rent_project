@@ -69,3 +69,20 @@ class NiveauCarburant(str, enum.Enum):
     MOITIE = "moitie"
     TROIS_QUARTS = "trois_quarts"
     PLEIN = "plein"
+
+
+class SourceReservation(str, enum.Enum):
+    AGENCE = "agence"
+    TELEPHONE = "telephone"
+    WHATSAPP = "whatsapp"
+    SITE_WEB = "site_web"
+    PARTENAIRE = "partenaire"
+
+
+class TypeDepense(str, enum.Enum):
+    ACHAT = "achat"
+    ASSURANCE = "assurance"
+    ENTRETIEN = "entretien"
+    REPARATION = "reparation"
+    CREDIT = "credit"
+    AUTRE = "autre"

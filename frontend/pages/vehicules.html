@@ -223,6 +223,59 @@
                 </div>
               </template>
 
+              <template x-if="editing">
+                <div style="margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+                  <div class="card-title" style="margin-bottom: 2px; font-size: var(--text-sm);" x-text="t('vehicules.section_depenses')"></div>
+                  <p class="text-secondary" style="font-size: var(--text-xs); margin-bottom: var(--space-3);" x-text="t('vehicules.depenses_hint')"></p>
+
+                  <div x-show="depenses.length" style="margin-bottom: var(--space-3);">
+                    <template x-for="d in depenses" :key="d.id">
+                      <div class="flex-between" style="padding: 6px 0; border-bottom: 1px solid var(--color-border); font-size: 13px; gap: 10px;">
+                        <span style="min-width:0;">
+                          <b x-text="t('vehicules.type_depense.' + d.type)"></b>
+                          <span class="text-secondary" x-text="' · ' + d.date_depense"></span>
+                          <span x-show="d.note" class="text-secondary" x-text="' — ' + d.note"></span>
+                        </span>
+                        <span style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                          <b x-text="d.montant + ' MAD'"></b>
+                          <button type="button" class="btn btn-ghost btn-icon btn-sm" @click="supprimerDepense(d.id)">✕</button>
+                        </span>
+                      </div>
+                    </template>
+                    <div class="flex-between" style="padding-top: 8px; font-weight: 800; font-size: 13px;">
+                      <span x-text="t('vehicules.dep_total')"></span><span x-text="depensesTotal + ' MAD'"></span>
+                    </div>
+                  </div>
+                  <p x-show="!depenses.length" class="text-secondary" style="font-size: 13px; margin-bottom: var(--space-3);" x-text="t('vehicules.dep_aucune')"></p>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label x-text="t('vehicules.f_dep_type')"></label>
+                      <select class="input" x-model="depenseForm.type">
+                        <template x-for="ty in ['achat', 'assurance', 'entretien', 'reparation', 'credit', 'autre']" :key="ty">
+                          <option :value="ty" x-text="t('vehicules.type_depense.' + ty)"></option>
+                        </template>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label x-text="t('vehicules.f_dep_montant')"></label>
+                      <input class="input" type="number" min="0" step="0.01" x-model="depenseForm.montant" />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label x-text="t('vehicules.f_dep_date')"></label>
+                      <input class="input" type="date" x-model="depenseForm.date_depense" />
+                    </div>
+                    <div class="form-group">
+                      <label x-text="t('vehicules.f_dep_note')"></label>
+                      <input class="input" x-model="depenseForm.note" />
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" :disabled="depenseSaving" @click="ajouterDepense()" x-text="t('vehicules.dep_ajouter')"></button>
+                </div>
+              </template>
+
               <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" @click="closeModal()" x-text="t('common.cancel')"></button>
                 <button type="submit" class="btn btn-primary" :disabled="saving">

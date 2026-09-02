@@ -32,5 +32,8 @@ class Agence(db.Model):
         Numeric(5, 2), nullable=False, default=Decimal("20"), server_default="20"
     )
 
+    # Objectif de chiffre d'affaires mensuel — jauge sur le tableau de bord.
+    objectif_ca_mensuel: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+
     def __repr__(self) -> str:
         return f"<Agence {self.nom}>"

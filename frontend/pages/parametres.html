@@ -113,6 +113,12 @@
                   </div>
                 </div>
 
+                <div class="form-group" style="margin-top: var(--space-3);">
+                  <label x-text="t('parametres.f_objectif_ca')"></label>
+                  <input class="input" type="number" min="0" step="100" x-model="agenceForm.objectif_ca_mensuel" />
+                  <small class="text-secondary" style="font-size: var(--text-xs);" x-text="t('parametres.objectif_ca_hint')"></small>
+                </div>
+
                 <div class="form-group" style="margin-top: var(--space-4);">
                   <label x-text="t('parametres.f_mentions')"></label>
                   <textarea class="input" rows="2" x-model="agenceForm.mentions_legales"></textarea>

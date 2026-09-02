@@ -47,6 +47,9 @@ class Vehicule(db.Model):
     )
 
     reservations: Mapped[list["Reservation"]] = relationship(back_populates="vehicule")
+    depenses: Mapped[list["DepenseVehicule"]] = relationship(
+        back_populates="vehicule", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Vehicule {self.marque} {self.modele} ({self.immatriculation})>"

@@ -5,7 +5,7 @@ from sqlalchemy import Date, DateTime, ForeignKey, Numeric, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.extensions import db
-from app.models.enums import StatutCaution, StatutReservation
+from app.models.enums import SourceReservation, StatutCaution, StatutReservation
 
 
 class Reservation(db.Model):
@@ -37,6 +37,10 @@ class Reservation(db.Model):
     caution_retenue: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     caution_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     lieu_prise_en_charge: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source: Mapped[SourceReservation | None] = mapped_column(
+        db.Enum(SourceReservation, values_callable=lambda x: [e.value for e in x]),
+        nullable=True,
+    )
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC), nullable=False

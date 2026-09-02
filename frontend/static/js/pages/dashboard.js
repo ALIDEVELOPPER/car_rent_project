@@ -88,10 +88,10 @@ function dashboardPage() {
       return (f.disponible || 0) + (f.loue || 0) + (f.maintenance || 0);
     },
 
-    caPct(ca) {
-      const vals = (this.data.ca_par_vehicule || []).map((v) => Number(v.ca));
+    margePct(marge) {
+      const vals = (this.data.rentabilite || []).map((v) => Math.abs(Number(v.marge)));
       const max = Math.max(1, ...vals);
-      return Math.max(3, (Number(ca) / max) * 100);
+      return Math.max(3, (Math.abs(Number(marge)) / max) * 100);
     },
 
     get donutSegments() {

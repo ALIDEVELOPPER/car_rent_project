@@ -1,5 +1,5 @@
 function emptyAgenceForm() {
-  return { nom: "", adresse: "", telephone: "", email: "", mentions_legales: "", conditions_contrat: "", langue: "fr", ice: "", rc: "", identifiant_fiscal: "", patente: "", tva_applicable: false, taux_tva: "20" };
+  return { nom: "", adresse: "", telephone: "", email: "", mentions_legales: "", conditions_contrat: "", langue: "fr", ice: "", rc: "", identifiant_fiscal: "", patente: "", tva_applicable: false, taux_tva: "20", objectif_ca_mensuel: "" };
 }
 
 function parametresPage() {
@@ -51,6 +51,7 @@ function parametresPage() {
           patente: this.agence.patente || "",
           tva_applicable: !!this.agence.tva_applicable,
           taux_tva: this.agence.taux_tva || "20",
+          objectif_ca_mensuel: this.agence.objectif_ca_mensuel || "",
         };
       } catch (err) {
         showToast(err.message, "error");

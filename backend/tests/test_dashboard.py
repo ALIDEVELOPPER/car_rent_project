@@ -32,11 +32,14 @@ def test_dashboard_operationnel_shape_empty(client, logged_in_employe):
     assert set(data.keys()) == {
         "date", "agenda", "impayes", "revenus", "revenus_annee", "flotte", "echeances",
         "cautions_a_restituer", "prochains_jours",
-        "taux_occupation", "indicateurs", "ca_par_vehicule",
+        "taux_occupation", "indicateurs", "rentabilite", "sources",
     }
     assert data["echeances"] == []
     assert data["cautions_a_restituer"] == []
-    assert data["ca_par_vehicule"] == []
+    assert data["rentabilite"] == []
+    assert data["sources"] == []
+    assert data["revenus"]["objectif"] is None
+    assert data["revenus"]["objectif_pct"] is None
     assert len(data["revenus_annee"]) == 12
     assert data["taux_occupation"] == 0.0
     assert data["indicateurs"]["taux_recouvrement"] is None
@@ -120,14 +123,24 @@ def test_dashboard_indicateurs_and_ca_par_vehicule(client, logged_in_employe):
         json={"statut_paiement": "payee", "mode_paiement": "especes"},
     )
 
+    # une dépense d'entretien de 400 sur le véhicule
+    client.post(
+        f"/api/vehicules/{v['id']}/depenses",
+        json={"type": "entretien", "montant": "400", "date_depense": "2026-08-20"},
+    )
+
     data = client.get("/api/dashboard").json
     assert data["indicateurs"]["nb_locations_12m"] == 1
     assert data["indicateurs"]["panier_moyen"] == "1500.00"
     assert data["indicateurs"]["duree_moyenne_jours"] == 5.0
     assert data["indicateurs"]["taux_recouvrement"] == 100.0
-    assert len(data["ca_par_vehicule"]) == 1
-    assert data["ca_par_vehicule"][0]["vehicule"] == "Renault Clio"
-    assert data["ca_par_vehicule"][0]["nb_locations"] == 1
+    assert len(data["rentabilite"]) == 1
+    assert data["rentabilite"][0]["vehicule"] == "Renault Clio"
+    assert data["rentabilite"][0]["nb_locations"] == 1
+    assert data["rentabilite"][0]["charges"] == "400.00"
+    assert data["rentabilite"][0]["marge"] == "1100.00"
+    assert data["sources"][0]["source"] == "agence"
+    assert data["sources"][0]["nombre"] == 1
 
 
 def test_kpis_shape(client, logged_in_employe):

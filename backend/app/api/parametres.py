@@ -33,6 +33,9 @@ def _serialize_agence(agence: Agence) -> dict:
         "patente": agence.patente,
         "tva_applicable": agence.tva_applicable,
         "taux_tva": str(agence.taux_tva),
+        "objectif_ca_mensuel": (
+            str(agence.objectif_ca_mensuel) if agence.objectif_ca_mensuel is not None else None
+        ),
     }
 
 
@@ -82,6 +85,19 @@ def update_agence():
         if not (0 <= taux <= 100):
             return jsonify({"error": "Le taux de TVA doit être entre 0 et 100"}), 400
         agence.taux_tva = taux
+
+    if "objectif_ca_mensuel" in data:
+        raw = data["objectif_ca_mensuel"]
+        if raw in (None, ""):
+            agence.objectif_ca_mensuel = None
+        else:
+            try:
+                objectif = Decimal(str(raw))
+            except (InvalidOperation, TypeError):
+                return jsonify({"error": "Objectif de CA invalide"}), 400
+            if objectif < 0:
+                return jsonify({"error": "L'objectif de CA ne peut pas être négatif"}), 400
+            agence.objectif_ca_mensuel = objectif
 
     db.session.commit()
     return jsonify(_serialize_agence(agence))

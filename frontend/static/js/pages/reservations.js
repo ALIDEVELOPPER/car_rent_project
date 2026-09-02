@@ -19,6 +19,7 @@ function emptyReservationForm() {
     caution_retenue: "",
     caution_note: "",
     lieu_prise_en_charge: "",
+    source: "agence",
     notes: "",
   };
 }
@@ -122,6 +123,7 @@ function reservationsPage() {
         caution_retenue: r.caution_retenue || "",
         caution_note: r.caution_note || "",
         lieu_prise_en_charge: r.lieu_prise_en_charge || "",
+        source: r.source || "agence",
         notes: r.notes || "",
       };
       this.formError = "";
