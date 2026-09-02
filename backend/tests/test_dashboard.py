@@ -30,11 +30,20 @@ def test_dashboard_operationnel_shape_empty(client, logged_in_employe):
     assert resp.status_code == 200
     data = resp.json
     assert set(data.keys()) == {
-        "date", "agenda", "impayes", "revenus", "flotte", "echeances",
+        "date", "agenda", "impayes", "revenus", "revenus_annee", "flotte", "echeances",
         "cautions_a_restituer", "prochains_jours",
+        "taux_occupation", "indicateurs", "ca_par_vehicule",
     }
     assert data["echeances"] == []
     assert data["cautions_a_restituer"] == []
+    assert data["ca_par_vehicule"] == []
+    assert len(data["revenus_annee"]) == 12
+    assert data["taux_occupation"] == 0.0
+    assert data["indicateurs"]["taux_recouvrement"] is None
+    assert set(data["indicateurs"].keys()) == {
+        "panier_moyen", "duree_moyenne_jours", "locations_mois",
+        "nouveaux_clients_mois", "taux_recouvrement", "nb_locations_12m",
+    }
     assert set(data["agenda"].keys()) == {"departs", "retours", "retards"}
     assert data["agenda"] == {"departs": [], "retours": [], "retards": []}
     assert data["impayes"]["nombre"] == 0
@@ -86,6 +95,39 @@ def test_dashboard_operationnel_with_data(client, logged_in_employe, db):
     assert data["flotte"]["loue"] == 1
     assert data["flotte"]["disponible"] == 1
     assert data["prochains_jours"][0]["reservations"] == [] or isinstance(data["prochains_jours"][0]["reservations"], list)
+
+
+def test_dashboard_indicateurs_and_ca_par_vehicule(client, logged_in_employe):
+    c = client.post(
+        "/api/clients", json={"nom": "Alami", "prenom": "Yassine", "telephone": "0600000000"}
+    ).json
+    v = client.post(
+        "/api/vehicules",
+        json={"marque": "Renault", "modele": "Clio", "immatriculation": "1-A-1",
+              "categorie": "citadine", "tarif_jour": "300"},
+    ).json
+    r = client.post(
+        "/api/reservations",
+        json={"client_id": c["id"], "vehicule_id": v["id"],
+              "date_debut": "2026-08-10", "date_fin": "2026-08-15"},
+    ).json
+    client.patch(f"/api/reservations/{r['id']}/statut", json={"statut": "confirmee"})
+    client.patch(f"/api/reservations/{r['id']}/statut", json={"statut": "en_cours"})
+    client.patch(f"/api/reservations/{r['id']}/statut", json={"statut": "terminee"})
+    facture = client.get("/api/factures").json[0]
+    client.patch(
+        f"/api/factures/{facture['id']}/statut-paiement",
+        json={"statut_paiement": "payee", "mode_paiement": "especes"},
+    )
+
+    data = client.get("/api/dashboard").json
+    assert data["indicateurs"]["nb_locations_12m"] == 1
+    assert data["indicateurs"]["panier_moyen"] == "1500.00"
+    assert data["indicateurs"]["duree_moyenne_jours"] == 5.0
+    assert data["indicateurs"]["taux_recouvrement"] == 100.0
+    assert len(data["ca_par_vehicule"]) == 1
+    assert data["ca_par_vehicule"][0]["vehicule"] == "Renault Clio"
+    assert data["ca_par_vehicule"][0]["nb_locations"] == 1
 
 
 def test_kpis_shape(client, logged_in_employe):

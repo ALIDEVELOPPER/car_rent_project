@@ -5,15 +5,18 @@ from flask_login import login_required
 
 from app.services.dashboard_stats import (
     compute_agenda_jour,
+    compute_ca_par_vehicule,
     compute_cautions_a_restituer,
     compute_echeances,
     compute_flotte,
     compute_impayes,
+    compute_indicateurs_cles,
     compute_kpis,
     compute_prochains_jours,
     compute_revenus_du_mois,
     compute_revenus_mois_precedent,
     compute_revenus_par_mois,
+    compute_taux_occupation,
     compute_top_vehicules,
 )
 
@@ -33,6 +36,8 @@ def get_dashboard():
     if revenus_prec > 0:
         variation = round(float((revenus_mois - revenus_prec) / revenus_prec * 100), 1)
 
+    revenus_annee = compute_revenus_par_mois(today, 12)
+
     return jsonify(
         {
             "date": today.isoformat(),
@@ -43,6 +48,12 @@ def get_dashboard():
                 "mois_precedent": str(revenus_prec),
                 "variation_pct": variation,
             },
+            "revenus_annee": [
+                {"mois": item["mois"], "revenus": str(item["revenus"])} for item in revenus_annee
+            ],
+            "taux_occupation": compute_taux_occupation(),
+            "indicateurs": compute_indicateurs_cles(today),
+            "ca_par_vehicule": compute_ca_par_vehicule(today, 6),
             "flotte": compute_flotte(),
             "echeances": compute_echeances(today, 30),
             "cautions_a_restituer": compute_cautions_a_restituer(),

@@ -147,6 +147,105 @@ def compute_echeances(reference_date: date, horizon_jours: int = 30) -> list[dic
     return resultats
 
 
+def _douze_mois_avant(reference_date: date) -> date:
+    return date(reference_date.year - 1, reference_date.month, 1)
+
+
+def compute_indicateurs_cles(reference_date: date) -> dict:
+    """Indicateurs de pilotage : panier moyen, durée moyenne, activité du mois,
+    taux de recouvrement — sur les 12 derniers mois glissants."""
+    debut_12m = _douze_mois_avant(reference_date)
+    debut_mois = reference_date.replace(day=1)
+
+    locations = db.session.execute(
+        db.select(
+            Reservation.date_debut, Reservation.date_fin, Reservation.montant_total
+        ).filter(
+            Reservation.statut != StatutReservation.ANNULEE,
+            Reservation.date_debut >= debut_12m,
+        )
+    ).all()
+    nb = len(locations)
+    panier_moyen = (
+        (sum((row.montant_total for row in locations), Decimal("0")) / nb) if nb else Decimal("0")
+    )
+    duree_moyenne = (
+        sum((row.date_fin - row.date_debut).days for row in locations) / nb if nb else 0
+    )
+
+    locations_mois = db.session.execute(
+        db.select(db.func.count(Reservation.id)).filter(
+            Reservation.statut != StatutReservation.ANNULEE,
+            Reservation.date_debut >= debut_mois,
+        )
+    ).scalar_one()
+
+    nouveaux_clients_mois = db.session.execute(
+        db.select(db.func.count(Client.id)).filter(
+            Client.created_at >= _to_datetime_utc(debut_mois)
+        )
+    ).scalar_one()
+
+    facture_total = db.session.execute(
+        db.select(db.func.coalesce(db.func.sum(Facture.montant), 0)).filter(
+            Facture.statut_paiement != StatutPaiement.ANNULEE,
+            Facture.date_emission >= _to_datetime_utc(debut_12m),
+        )
+    ).scalar_one()
+    encaisse_total = db.session.execute(
+        db.select(db.func.coalesce(db.func.sum(Facture.montant), 0)).filter(
+            Facture.statut_paiement == StatutPaiement.PAYEE,
+            Facture.date_emission >= _to_datetime_utc(debut_12m),
+        )
+    ).scalar_one()
+    taux_recouvrement = (
+        round(float(encaisse_total) / float(facture_total) * 100, 1)
+        if facture_total
+        else None
+    )
+
+    return {
+        "panier_moyen": str(Decimal(panier_moyen).quantize(Decimal("0.01"))),
+        "duree_moyenne_jours": round(float(duree_moyenne), 1),
+        "locations_mois": locations_mois,
+        "nouveaux_clients_mois": nouveaux_clients_mois,
+        "taux_recouvrement": taux_recouvrement,
+        "nb_locations_12m": nb,
+    }
+
+
+def compute_ca_par_vehicule(reference_date: date, limit: int = 6) -> list[dict]:
+    """Chiffre d'affaires facturé par véhicule sur les 12 derniers mois,
+    du plus rentable au moins rentable."""
+    debut = _to_datetime_utc(_douze_mois_avant(reference_date))
+    ca = db.func.coalesce(db.func.sum(Facture.montant), 0).label("ca")
+    nb = db.func.count(Facture.id).label("nb")
+    rows = db.session.execute(
+        db.select(
+            Vehicule.id, Vehicule.marque, Vehicule.modele, Vehicule.immatriculation, ca, nb
+        )
+        .join(Reservation, Reservation.vehicule_id == Vehicule.id)
+        .join(Facture, Facture.reservation_id == Reservation.id)
+        .filter(
+            Facture.statut_paiement != StatutPaiement.ANNULEE,
+            Facture.date_emission >= debut,
+        )
+        .group_by(Vehicule.id)
+        .order_by(ca.desc())
+        .limit(limit)
+    ).all()
+    return [
+        {
+            "vehicule_id": row.id,
+            "vehicule": f"{row.marque} {row.modele}",
+            "immatriculation": row.immatriculation,
+            "ca": str(row.ca),
+            "nb_locations": row.nb,
+        }
+        for row in rows
+    ]
+
+
 def compute_cautions_a_restituer() -> list[dict]:
     """Réservations terminées dont la caution a été encaissée mais pas encore
     rendue au client."""

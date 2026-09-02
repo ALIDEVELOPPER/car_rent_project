@@ -12,7 +12,6 @@ function dashboardPage() {
     data: null,
     revenus6: [],
     devise: "MAD",
-
     revenusAnnee: [],
     _chart: null,
 
@@ -22,13 +21,9 @@ function dashboardPage() {
       await requireAuth("");
       this.devise = window.currentLang && window.currentLang() === "ar" ? "درهم" : "MAD";
       try {
-        const [d, r12] = await Promise.all([
-          Api.get("/dashboard"),
-          Api.get("/dashboard/revenus-par-mois?mois=12").catch(() => []),
-        ]);
-        this.data = d;
-        this.revenusAnnee = r12;
-        this.revenus6 = r12.slice(-6).map((x) => Number(x.revenus));
+        this.data = await Api.get("/dashboard");
+        this.revenusAnnee = this.data.revenus_annee || [];
+        this.revenus6 = this.revenusAnnee.slice(-6).map((x) => Number(x.revenus));
       } catch (err) {
         showToast(err.message, "error");
       } finally {
@@ -47,22 +42,22 @@ function dashboardPage() {
     renderRevenusChart() {
       const ctx = document.getElementById("chart-revenus-annee");
       if (!ctx || !window.Chart || !this.revenusAnnee.length) return;
-      const cs = getComputedStyle(document.documentElement);
-      const primary = cs.getPropertyValue("--color-primary").trim() || "#4f46e5";
+      const cs = getComputedStyle(document.querySelector(".main-content") || document.documentElement);
+      const vert = cs.getPropertyValue("--c-argent").trim() || "#10b981";
       const text = cs.getPropertyValue("--color-text-muted").trim() || "#9aa1ac";
       const grid = cs.getPropertyValue("--color-border").trim() || "#eceef2";
+
+      const g = ctx.getContext("2d").createLinearGradient(0, 0, 0, 240);
+      g.addColorStop(0, vert);
+      g.addColorStop(1, vert + "55");
+
       if (this._chart) this._chart.destroy();
       this._chart = new window.Chart(ctx, {
         type: "bar",
         data: {
           labels: this.revenusAnnee.map((x) => this.moisLabel(x.mois)),
           datasets: [
-            {
-              data: this.revenusAnnee.map((x) => Number(x.revenus)),
-              backgroundColor: primary,
-              borderRadius: 6,
-              maxBarThickness: 34,
-            },
+            { data: this.revenusAnnee.map((x) => Number(x.revenus)), backgroundColor: g, borderRadius: 6, maxBarThickness: 34 },
           ],
         },
         options: {
@@ -70,17 +65,11 @@ function dashboardPage() {
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: {
-              callbacks: { label: (c) => `${fmtMontant(c.parsed.y)} ${this.devise}` },
-            },
+            tooltip: { callbacks: { label: (c) => `${fmtMontant(c.parsed.y)} ${this.devise}` } },
           },
           scales: {
             x: { ticks: { color: text }, grid: { display: false } },
-            y: {
-              beginAtZero: true,
-              ticks: { color: text, callback: (v) => fmtMontant(v) },
-              grid: { color: grid },
-            },
+            y: { beginAtZero: true, ticks: { color: text, callback: (v) => fmtMontant(v) }, grid: { color: grid } },
           },
         },
       });
@@ -94,7 +83,17 @@ function dashboardPage() {
       });
     },
 
-    // ---- flotte donut (dispo / loué / maintenance / hors service) ----
+    get flotteActive() {
+      const f = (this.data && this.data.flotte) || {};
+      return (f.disponible || 0) + (f.loue || 0) + (f.maintenance || 0);
+    },
+
+    caPct(ca) {
+      const vals = (this.data.ca_par_vehicule || []).map((v) => Number(v.ca));
+      const max = Math.max(1, ...vals);
+      return Math.max(3, (Number(ca) / max) * 100);
+    },
+
     get donutSegments() {
       const f = (this.data && this.data.flotte) || {};
       const total = (f.disponible || 0) + (f.loue || 0) + (f.maintenance || 0) + (f.hors_service || 0);
@@ -109,7 +108,7 @@ function dashboardPage() {
           offset = (offset - pct + 100) % 100;
           return seg;
         });
-      return { total, segs, f };
+      return { total, segs };
     },
 
     get sparkMax() {
