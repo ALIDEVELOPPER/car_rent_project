@@ -25,6 +25,8 @@ def _serialize_reservation(reservation: Reservation) -> dict:
         "created_by": reservation.created_by,
         "date_debut": reservation.date_debut.isoformat(),
         "date_fin": reservation.date_fin.isoformat(),
+        "heure_debut": reservation.heure_debut,
+        "heure_fin": reservation.heure_fin,
         "statut": reservation.statut.value,
         "prix_jour_applique": str(reservation.prix_jour_applique),
         "montant_total": str(reservation.montant_total),
@@ -56,6 +58,20 @@ def _parse_date(raw, field_name: str) -> date:
         return date.fromisoformat(raw)
     except (TypeError, ValueError):
         raise ValueError(f"Date invalide pour '{field_name}' : {raw!r}") from None
+
+
+def _parse_heure(raw) -> str | None:
+    if raw in (None, ""):
+        return None
+    raw = str(raw).strip()
+    parts = raw.split(":")
+    try:
+        h, m = int(parts[0]), int(parts[1])
+        if len(parts) == 2 and 0 <= h < 24 and 0 <= m < 60:
+            return f"{h:02d}:{m:02d}"
+    except (ValueError, IndexError):
+        pass
+    raise ValueError(f"Heure invalide : {raw!r}")
 
 
 @bp.get("")
@@ -107,6 +123,8 @@ def create_reservation():
         date_fin = _parse_date(data["date_fin"], "date_fin")
         montant_total = compute_montant_total(vehicule.tarif_jour, date_debut, date_fin)
         caution = _parse_caution(data.get("caution"))
+        heure_debut = _parse_heure(data.get("heure_debut"))
+        heure_fin = _parse_heure(data.get("heure_fin"))
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
@@ -122,6 +140,8 @@ def create_reservation():
         prix_jour_applique=vehicule.tarif_jour,
         montant_total=montant_total,
         caution=caution,
+        heure_debut=heure_debut,
+        heure_fin=heure_fin,
         lieu_prise_en_charge=(data.get("lieu_prise_en_charge") or None),
         notes=data.get("notes"),
     )
@@ -204,6 +224,13 @@ def update_reservation(reservation_id):
 
     if "lieu_prise_en_charge" in data:
         reservation.lieu_prise_en_charge = data["lieu_prise_en_charge"] or None
+
+    for champ in ("heure_debut", "heure_fin"):
+        if champ in data:
+            try:
+                setattr(reservation, champ, _parse_heure(data[champ]))
+            except ValueError as exc:
+                return jsonify({"error": str(exc)}), 400
 
     if "caution" in data:
         try:

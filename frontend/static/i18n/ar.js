@@ -199,6 +199,8 @@ window.I18N.ar = {
   },
 
   reservations: {
+    f_heure_debut: "ساعة المغادرة",
+    f_heure_fin: "ساعة الإرجاع",
     caution_statut: {
       non_recue: "غير مستلمة",
       recue: "مستلمة",

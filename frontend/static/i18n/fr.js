@@ -199,6 +199,8 @@ window.I18N.fr = {
   },
 
   reservations: {
+    f_heure_debut: "Heure de départ",
+    f_heure_fin: "Heure de retour",
     caution_statut: {
       non_recue: "Non reçue",
       recue: "Reçue",

@@ -265,11 +265,13 @@ def render_contrat_pdf(reservation) -> bytes:
     )
 
     nb_jours = (reservation.date_fin - reservation.date_debut).days
+    h1_txt = f" {reservation.heure_debut}" if reservation.heure_debut else ""
+    h2_txt = f" {reservation.heure_fin}" if reservation.heure_fin else ""
     elements.append(Paragraph(pl.tr(s["location_section"]), section_style))
     elements.append(
         kv_table(
             [
-                (s["periode"], f"{s['du']} {_fmt_date(reservation.date_debut)} {s['au']} {_fmt_date(reservation.date_fin)}  ({nb_jours} {s['jours_unite']})"),
+                (s["periode"], f"{s['du']} {_fmt_date(reservation.date_debut)}{h1_txt} {s['au']} {_fmt_date(reservation.date_fin)}{h2_txt}  ({nb_jours} {s['jours_unite']})"),
                 (s["lieu"], reservation.lieu_prise_en_charge or _BLANK),
                 (s["prix_jour"], _fmt_money(reservation.prix_jour_applique, devise)),
                 (s["total"], _fmt_money(reservation.montant_total, devise)),

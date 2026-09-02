@@ -151,9 +151,19 @@
                   <label x-text="t('reservations.f_date_debut')"></label>
                   <input class="input" type="date" x-model="form.date_debut" required @change="onAvailabilityInputsChanged()" />
                 </div>
+                <div class="form-group" style="max-width: 140px;">
+                  <label x-text="t('reservations.f_heure_debut')"></label>
+                  <input class="input" type="time" x-model="form.heure_debut" />
+                </div>
+              </div>
+              <div class="form-row">
                 <div class="form-group">
                   <label x-text="t('reservations.f_date_fin')"></label>
                   <input class="input" type="date" x-model="form.date_fin" required @change="onAvailabilityInputsChanged()" />
+                </div>
+                <div class="form-group" style="max-width: 140px;">
+                  <label x-text="t('reservations.f_heure_fin')"></label>
+                  <input class="input" type="time" x-model="form.heure_fin" />
                 </div>
               </div>
 

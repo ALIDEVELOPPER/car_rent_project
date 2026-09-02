@@ -87,6 +87,7 @@
                     <div class="ag-row">
                       <span class="ag-dot" style="background: var(--color-primary);"></span>
                       <div class="ag-main"><div class="ag-name" x-text="r.client"></div><div class="ag-sub" x-text="`${r.vehicule} · ${r.immatriculation}`"></div></div>
+                      <span x-show="r.heure" style="font-size: 12px; font-weight: 700; color: var(--color-text-secondary);" x-text="r.heure"></span>
                       <span class="badge" :class="r.statut === 'confirmee' ? 'badge-info' : 'badge-neutral'" x-text="t('reservations.statut.' + r.statut)"></span>
                     </div>
                   </template>
@@ -107,6 +108,7 @@
                     <div class="ag-row">
                       <span class="ag-dot" style="background: var(--color-success);"></span>
                       <div class="ag-main"><div class="ag-name" x-text="r.client"></div><div class="ag-sub" x-text="`${r.vehicule} · ${r.immatriculation}`"></div></div>
+                      <span x-show="r.heure" style="font-size: 12px; font-weight: 700; color: var(--color-text-secondary);" x-text="r.heure"></span>
                     </div>
                   </template>
                 </div>

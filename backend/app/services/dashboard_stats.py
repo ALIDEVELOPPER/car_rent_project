@@ -193,7 +193,7 @@ def compute_impayes() -> dict:
     return {"total": Decimal(row[0]), "nombre": row[1]}
 
 
-def _serialize_ligne_agenda(reservation: Reservation, reference_date: date) -> dict:
+def _serialize_ligne_agenda(reservation: Reservation, reference_date: date, heure: str | None = None) -> dict:
     client = reservation.client
     vehicule = reservation.vehicule
     retard_jours = max(0, (reference_date - reservation.date_fin).days)
@@ -204,6 +204,7 @@ def _serialize_ligne_agenda(reservation: Reservation, reference_date: date) -> d
         "immatriculation": vehicule.immatriculation,
         "date_debut": reservation.date_debut.isoformat(),
         "date_fin": reservation.date_fin.isoformat(),
+        "heure": heure,
         "statut": reservation.statut.value,
         "retard_jours": retard_jours,
     }
@@ -239,9 +240,9 @@ def compute_agenda_jour(reference_date: date) -> dict:
     ).scalars().all()
 
     return {
-        "departs": [_serialize_ligne_agenda(r, reference_date) for r in departs],
-        "retours": [_serialize_ligne_agenda(r, reference_date) for r in retours],
-        "retards": [_serialize_ligne_agenda(r, reference_date) for r in retards],
+        "departs": [_serialize_ligne_agenda(r, reference_date, r.heure_debut) for r in departs],
+        "retours": [_serialize_ligne_agenda(r, reference_date, r.heure_fin) for r in retours],
+        "retards": [_serialize_ligne_agenda(r, reference_date, r.heure_fin) for r in retards],
     }
 
 

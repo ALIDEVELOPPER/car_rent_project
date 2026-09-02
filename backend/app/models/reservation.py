@@ -18,6 +18,8 @@ class Reservation(db.Model):
 
     date_debut: Mapped[date] = mapped_column(Date, nullable=False)
     date_fin: Mapped[date] = mapped_column(Date, nullable=False)
+    heure_debut: Mapped[str | None] = mapped_column(db.String(5), nullable=True)  # "HH:MM"
+    heure_fin: Mapped[str | None] = mapped_column(db.String(5), nullable=True)
     statut: Mapped[StatutReservation] = mapped_column(
         db.Enum(StatutReservation, values_callable=lambda x: [e.value for e in x]),
         default=StatutReservation.EN_ATTENTE,

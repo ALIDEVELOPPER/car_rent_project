@@ -309,3 +309,16 @@ def test_disponibilite_endpoint(client, logged_in_employe, client_obj, vehicule)
         f"/api/vehicules/{vehicule.id}/disponibilite?date_debut=2026-08-10&date_fin=2026-08-15"
     )
     assert resp.json["disponible"] is False
+
+
+def test_reservation_heures(client, logged_in_employe, client_obj, vehicule):
+    r = _create_reservation(client, client_obj, vehicule, heure_debut="09:30", heure_fin="18:00").json
+    assert r["heure_debut"] == "09:30"
+    assert r["heure_fin"] == "18:00"
+
+    resp = client.put(f"/api/reservations/{r['id']}", json={"heure_debut": "25:00"})
+    assert resp.status_code == 400
+
+    resp = client.put(f"/api/reservations/{r['id']}", json={"heure_debut": ""})
+    assert resp.status_code == 200
+    assert resp.json["heure_debut"] is None
