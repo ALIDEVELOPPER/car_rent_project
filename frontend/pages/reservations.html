@@ -83,6 +83,7 @@
                       <button class="btn btn-secondary btn-sm" x-show="r.statut !== 'annulee'" @click="downloadContrat(r)" :disabled="contratLoadingId === r.id">
                         <span x-text="contratLoadingId === r.id ? t('reservations.contrat_loading') : t('reservations.contrat')"></span>
                       </button>
+                      <button class="btn btn-secondary btn-sm" x-show="r.statut !== 'annulee'" @click="openEdl(r)" x-text="t('etatdeslieux.bouton')"></button>
                       <button class="btn btn-secondary btn-sm" x-show="['en_attente', 'confirmee', 'en_cours'].includes(r.statut)" @click="openEdit(r)" x-text="t('common.edit')">
                       </button>
                       <button class="btn btn-secondary btn-sm" x-show="r.statut === 'en_attente'" @click="changeStatut(r, 'confirmee')" x-text="t('reservations.confirmer')">
@@ -224,6 +225,84 @@
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+
+        <div class="modal-overlay" x-show="edlOpen" x-cloak @click.self="closeEdl()">
+          <div class="modal modal-lg">
+            <div class="modal-header">
+              <h2>
+                <span x-text="t('etatdeslieux.titre')"></span>
+                <span class="text-secondary" style="font-weight: 400" x-show="edlResa" x-text="edlResa ? ' — ' + clientLabel(edlResa.client_id) + ' · ' + vehiculeLabel(edlResa.vehicule_id) : ''"></span>
+              </h2>
+              <button class="btn btn-ghost btn-icon" type="button" @click="closeEdl()">✕</button>
+            </div>
+
+            <div class="edl-grid">
+              <template x-for="type_ in ['depart', 'retour']" :key="type_">
+                <div class="edl-card">
+                  <div class="flex-between mb-3">
+                    <h3 x-text="t('etatdeslieux.' + type_)"></h3>
+                    <span class="badge badge-neutral" x-show="!edl[type_].id" x-text="t('etatdeslieux.non_effectue')"></span>
+                  </div>
+
+                  <div class="form-group">
+                    <label x-text="t('etatdeslieux.f_km')"></label>
+                    <input class="input" type="number" min="0" step="1" x-model="edl[type_].kilometrage" />
+                  </div>
+
+                  <div class="form-group">
+                    <label x-text="t('etatdeslieux.f_carburant')"></label>
+                    <select class="input" x-model="edl[type_].niveau_carburant">
+                      <option value="" x-text="t('common.select')"></option>
+                      <template x-for="n in ['vide', 'quart', 'moitie', 'trois_quarts', 'plein']" :key="n">
+                        <option :value="n" x-text="t('niveau_carburant.' + n)"></option>
+                      </template>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label x-text="t('etatdeslieux.f_degats')"></label>
+                    <textarea class="input" rows="2" x-model="edl[type_].degats"></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label x-text="t('etatdeslieux.f_observations')"></label>
+                    <textarea class="input" rows="2" x-model="edl[type_].observations"></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label x-text="t('etatdeslieux.photos')"></label>
+                    <div class="edl-photos" x-show="edl[type_].photos && edl[type_].photos.length">
+                      <template x-for="url in edl[type_].photos" :key="url">
+                        <div class="edl-photo">
+                          <img :src="'/api/uploads/' + url" alt="" />
+                          <button type="button" class="edl-photo-del" @click="removeEdlPhoto(type_, url)">✕</button>
+                        </div>
+                      </template>
+                    </div>
+                    <template x-if="edl[type_].id">
+                      <label class="btn btn-secondary btn-sm" style="cursor: pointer">
+                        <span x-text="t('etatdeslieux.add_photo')"></span>
+                        <input type="file" accept="image/*" style="display: none" @change="uploadEdlPhoto(type_, $event.target)" />
+                      </label>
+                    </template>
+                    <p class="text-secondary" style="font-size: var(--text-xs)" x-show="!edl[type_].id" x-text="t('etatdeslieux.save_before_photo')"></p>
+                  </div>
+
+                  <div class="flex gap-2" style="margin-top: var(--space-3)">
+                    <button type="button" class="btn btn-primary btn-sm" :disabled="edlSaving === type_" @click="saveEdl(type_)">
+                      <span x-text="edlSaving === type_ ? t('common.saving') : t('etatdeslieux.enregistrer')"></span>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" x-show="edl[type_].id" @click="printEdl(type_)" x-text="t('etatdeslieux.imprimer')"></button>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" @click="closeEdl()" x-text="t('common.close')"></button>
+            </div>
           </div>
         </div>
       </div>

@@ -46,6 +46,9 @@ class Reservation(db.Model):
     vehicule: Mapped["Vehicule"] = relationship(back_populates="reservations")
     agent: Mapped["User | None"] = relationship()
     facture: Mapped["Facture"] = relationship(back_populates="reservation", uselist=False)
+    etats_des_lieux: Mapped[list["EtatDesLieux"]] = relationship(
+        back_populates="reservation", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Reservation {self.id} client={self.client_id} vehicule={self.vehicule_id}>"

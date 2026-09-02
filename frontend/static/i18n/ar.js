@@ -73,6 +73,35 @@ window.I18N.ar = {
     vidange: "تغيير الزيت",
   },
 
+  niveau_carburant: {
+    vide: "فارغ",
+    quart: "الربع",
+    moitie: "النصف",
+    trois_quarts: "ثلاثة أرباع",
+    plein: "ممتلئ",
+  },
+
+  etatdeslieux: {
+    titre: "محضر المعاينة",
+    bouton: "محضر المعاينة",
+    depart: "عند الانطلاق",
+    retour: "عند الإرجاع",
+    non_effectue: "لم يُنجز",
+    f_km: "عدد الكيلومترات",
+    f_carburant: "مستوى الوقود",
+    f_degats: "الأضرار المعاينة",
+    f_observations: "ملاحظات",
+    photos: "الصور",
+    add_photo: "إضافة صورة",
+    save_before_photo: "احفظ هذا القسم أولاً لتتمكن من إضافة الصور.",
+    imprimer: "طباعة",
+    enregistrer: "حفظ",
+    t_saved: "تم حفظ محضر المعاينة",
+    t_photo: "تمت إضافة الصورة",
+    t_photo_removed: "تم حذف الصورة",
+    confirm_remove_photo: "حذف هذه الصورة؟",
+  },
+
   dashboard: {
     cautions: "ضمانات يجب إرجاعها",
     aucune_caution: "لا توجد ضمانات لإرجاعها",

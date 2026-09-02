@@ -56,3 +56,16 @@ class StatutCaution(str, enum.Enum):
     RECUE = "recue"
     RESTITUEE = "restituee"
     RETENUE = "retenue"
+
+
+class TypeEtatDesLieux(str, enum.Enum):
+    DEPART = "depart"
+    RETOUR = "retour"
+
+
+class NiveauCarburant(str, enum.Enum):
+    VIDE = "vide"
+    QUART = "quart"
+    MOITIE = "moitie"
+    TROIS_QUARTS = "trois_quarts"
+    PLEIN = "plein"

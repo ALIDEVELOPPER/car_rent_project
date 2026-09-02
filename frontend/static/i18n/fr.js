@@ -73,6 +73,35 @@ window.I18N.fr = {
     vidange: "Vidange",
   },
 
+  niveau_carburant: {
+    vide: "Vide",
+    quart: "1/4",
+    moitie: "1/2",
+    trois_quarts: "3/4",
+    plein: "Plein",
+  },
+
+  etatdeslieux: {
+    titre: "État des lieux",
+    bouton: "État des lieux",
+    depart: "Départ",
+    retour: "Retour",
+    non_effectue: "Non effectué",
+    f_km: "Kilométrage",
+    f_carburant: "Niveau de carburant",
+    f_degats: "Dégâts constatés",
+    f_observations: "Observations",
+    photos: "Photos",
+    add_photo: "Ajouter une photo",
+    save_before_photo: "Enregistrez d'abord cette section pour pouvoir ajouter des photos.",
+    imprimer: "Imprimer",
+    enregistrer: "Enregistrer",
+    t_saved: "État des lieux enregistré",
+    t_photo: "Photo ajoutée",
+    t_photo_removed: "Photo supprimée",
+    confirm_remove_photo: "Supprimer cette photo ?",
+  },
+
   dashboard: {
     cautions: "Cautions à restituer",
     aucune_caution: "Aucune caution à restituer",

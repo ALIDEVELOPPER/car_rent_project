@@ -23,6 +23,10 @@ function emptyReservationForm() {
   };
 }
 
+function emptyEdl() {
+  return { id: null, kilometrage: "", niveau_carburant: "", degats: "", observations: "", photos: [] };
+}
+
 function reservationsPage() {
   return {
     reservations: [],
@@ -39,6 +43,10 @@ function reservationsPage() {
     dispoTimeout: null,
     currentUser: null,
     contratLoadingId: null,
+    edlOpen: false,
+    edlResa: null,
+    edl: { depart: emptyEdl(), retour: emptyEdl() },
+    edlSaving: null,
 
     async init() {
       this.currentUser = await requireAuth("reservations");
@@ -202,6 +210,98 @@ function reservationsPage() {
       } finally {
         this.contratLoadingId = null;
       }
+    },
+
+    async openEdl(reservation) {
+      this.edlResa = reservation;
+      this.edl = { depart: emptyEdl(), retour: emptyEdl() };
+      this.edlOpen = true;
+      try {
+        const etats = await Api.get(`/reservations/${reservation.id}/etats-des-lieux`);
+        for (const e of etats) {
+          this.edl[e.type] = {
+            id: e.id,
+            kilometrage: e.kilometrage ?? "",
+            niveau_carburant: e.niveau_carburant || "",
+            degats: e.degats || "",
+            observations: e.observations || "",
+            photos: e.photos || [],
+          };
+        }
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    },
+
+    closeEdl() {
+      this.edlOpen = false;
+    },
+
+    async saveEdl(type_) {
+      this.edlSaving = type_;
+      try {
+        const src = this.edl[type_];
+        const updated = await Api.put(
+          `/reservations/${this.edlResa.id}/etats-des-lieux/${type_}`,
+          {
+            kilometrage: src.kilometrage === "" ? null : src.kilometrage,
+            niveau_carburant: src.niveau_carburant || null,
+            degats: src.degats || null,
+            observations: src.observations || null,
+          },
+        );
+        this.edl[type_] = {
+          id: updated.id,
+          kilometrage: updated.kilometrage ?? "",
+          niveau_carburant: updated.niveau_carburant || "",
+          degats: updated.degats || "",
+          observations: updated.observations || "",
+          photos: updated.photos || [],
+        };
+        showToast(t("etatdeslieux.t_saved"));
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        this.edlSaving = null;
+      }
+    },
+
+    async uploadEdlPhoto(type_, fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append("fichier", file);
+      try {
+        const updated = await Api.upload(`/etat-des-lieux/${this.edl[type_].id}/photo`, formData);
+        this.edl[type_].photos = updated.photos || [];
+        showToast(t("etatdeslieux.t_photo"));
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        fileInput.value = "";
+      }
+    },
+
+    async removeEdlPhoto(type_, url) {
+      if (!confirm(t("etatdeslieux.confirm_remove_photo"))) return;
+      try {
+        const updated = await Api.del(`/etat-des-lieux/${this.edl[type_].id}/photo`, { url });
+        this.edl[type_].photos = updated.photos || [];
+        showToast(t("etatdeslieux.t_photo_removed"));
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    },
+
+    async printEdl(type_) {
+      const etatId = this.edl[type_].id;
+      if (!etatId) return;
+      const num = String(this.edlResa.id).padStart(5, "0");
+      const result = await downloadAuthed(
+        `/api/etat-des-lieux/${etatId}/pdf`,
+        `etat-des-lieux-${type_}-${num}.pdf`,
+      );
+      if (result && result.error) showToast(result.error, "error");
     },
 
     async changeStatut(reservation, statut) {

@@ -2,6 +2,7 @@ def register_blueprints(app):
     from app.api.auth import bp as auth_bp
     from app.api.clients import bp as clients_bp
     from app.api.dashboard import bp as dashboard_bp
+    from app.api.etat_des_lieux import bp as etat_des_lieux_bp
     from app.api.factures import bp as factures_bp
     from app.api.import_donnees import bp as import_bp
     from app.api.licence import bp as licence_bp
@@ -15,6 +16,7 @@ def register_blueprints(app):
     app.register_blueprint(auth_bp)
     app.register_blueprint(clients_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(etat_des_lieux_bp)
     app.register_blueprint(factures_bp)
     app.register_blueprint(import_bp)
     app.register_blueprint(licence_bp)
