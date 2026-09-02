@@ -14,6 +14,8 @@ function parametresPage() {
     agenceError: "",
 
     passwordForm: { mot_de_passe: "" },
+    importing: false,
+    importResult: null,
     passwordSaving: false,
     passwordError: "",
 
@@ -78,6 +80,24 @@ function parametresPage() {
         showToast(err.message, "error");
       }
       fileInput.value = "";
+    },
+
+    async importer(quoi, input) {
+      const file = input.files[0];
+      if (!file) return;
+      this.importing = true;
+      this.importResult = null;
+      const fd = new FormData();
+      fd.append("fichier", file);
+      try {
+        this.importResult = await Api.upload(`/import/${quoi}`, fd);
+        showToast(t("parametres.import_ok"));
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        this.importing = false;
+        input.value = "";
+      }
     },
 
     async changePassword() {

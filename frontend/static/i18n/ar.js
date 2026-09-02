@@ -293,6 +293,12 @@ window.I18N.ar = {
   },
 
   parametres: {
+    import_section: "الاستيراد من Excel",
+    import_hint: "استورد أسطولك وعملاءك من ملف ‎.xlsx‎. حمّل النموذج لمعرفة الأعمدة المطلوبة.",
+    import_modele: "تحميل النموذج",
+    import_crees: "أُنشئ",
+    import_ignores: "تم تجاهله (موجود مسبقًا)",
+    import_ok: "انتهى الاستيراد",
     section_legal: "المعرّفات القانونية",
     f_if: "التعريف الجبائي (IF)",
     f_patente: "الرسم المهني (Patente)",

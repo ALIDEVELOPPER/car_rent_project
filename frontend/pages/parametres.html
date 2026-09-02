@@ -129,6 +129,33 @@
               </form>
             </div>
 
+            <div class="card mb-6">
+              <div class="card-title" x-text="t('parametres.import_section')"></div>
+              <p class="text-secondary" style="font-size: var(--text-sm); margin-bottom: var(--space-4);" x-text="t('parametres.import_hint')"></p>
+              <div class="form-row">
+                <div class="form-group">
+                  <label x-text="t('nav.vehicules')"></label>
+                  <input type="file" accept=".xlsx" @change="importer('vehicules', $event.target)" :disabled="importing" />
+                  <a href="/api/import/modele/vehicules" style="font-size: var(--text-xs); margin-top: 4px;" x-text="t('parametres.import_modele')"></a>
+                </div>
+                <div class="form-group">
+                  <label x-text="t('nav.clients')"></label>
+                  <input type="file" accept=".xlsx" @change="importer('clients', $event.target)" :disabled="importing" />
+                  <a href="/api/import/modele/clients" style="font-size: var(--text-xs); margin-top: 4px;" x-text="t('parametres.import_modele')"></a>
+                </div>
+              </div>
+              <template x-if="importResult">
+                <div style="margin-top: var(--space-3); padding: var(--space-3); border-radius: var(--radius-sm); background: var(--color-surface-alt); font-size: var(--text-sm);">
+                  <div><b x-text="importResult.cree"></b> <span x-text="t('parametres.import_crees')"></span><span x-show="importResult.ignore"> · <b x-text="importResult.ignore"></b> <span x-text="t('parametres.import_ignores')"></span></span></div>
+                  <template x-if="importResult.erreurs && importResult.erreurs.length">
+                    <ul style="margin: var(--space-2) 0 0; padding-left: 1.1em; color: var(--color-danger); font-size: var(--text-xs);">
+                      <template x-for="e in importResult.erreurs" :key="e"><li x-text="e"></li></template>
+                    </ul>
+                  </template>
+                </div>
+              </template>
+            </div>
+
             <div class="card">
               <div class="card-title" x-text="t('parametres.password_section')"></div>
               <template x-if="passwordError">

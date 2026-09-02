@@ -293,6 +293,12 @@ window.I18N.fr = {
   },
 
   parametres: {
+    import_section: "Importer depuis Excel",
+    import_hint: "Importez votre flotte et vos clients depuis un fichier .xlsx. Téléchargez le modèle pour connaître les colonnes attendues.",
+    import_modele: "Télécharger le modèle",
+    import_crees: "créé(s)",
+    import_ignores: "ignoré(s) (déjà présents)",
+    import_ok: "Import terminé",
     section_legal: "Identifiants légaux",
     f_if: "Identifiant fiscal (IF)",
     f_patente: "Patente",

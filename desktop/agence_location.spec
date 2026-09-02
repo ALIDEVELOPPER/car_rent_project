@@ -20,6 +20,7 @@ hiddenimports = [
     "arabic_reshaper",
     "bidi",
     "bidi.algorithm",
+    "openpyxl",
 ]
 
 if sys.platform.startswith("linux"):
