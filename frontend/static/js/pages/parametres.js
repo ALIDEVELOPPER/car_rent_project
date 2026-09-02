@@ -1,5 +1,5 @@
 function emptyAgenceForm() {
-  return { nom: "", adresse: "", telephone: "", email: "", mentions_legales: "", conditions_contrat: "", langue: "fr" };
+  return { nom: "", adresse: "", telephone: "", email: "", mentions_legales: "", conditions_contrat: "", langue: "fr", ice: "", rc: "", identifiant_fiscal: "", patente: "", tva_applicable: false, taux_tva: "20" };
 }
 
 function parametresPage() {
@@ -39,6 +39,12 @@ function parametresPage() {
           mentions_legales: this.agence.mentions_legales || "",
           conditions_contrat: this.agence.conditions_contrat || "",
           langue: this.agence.langue || "fr",
+          ice: this.agence.ice || "",
+          rc: this.agence.rc || "",
+          identifiant_fiscal: this.agence.identifiant_fiscal || "",
+          patente: this.agence.patente || "",
+          tva_applicable: !!this.agence.tva_applicable,
+          taux_tva: this.agence.taux_tva || "20",
         };
       } catch (err) {
         showToast(err.message, "error");

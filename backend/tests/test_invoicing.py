@@ -59,6 +59,26 @@ def test_create_facture_snapshots_montant(db, vehicule, client_obj):
     assert facture.montant == reservation.montant_total
     assert facture.statut_paiement == StatutPaiement.EN_ATTENTE
     assert facture.numero_facture.startswith("FAC-")
+    assert facture.montant_ht is None  # agence non assujettie par défaut
+
+
+def test_create_facture_splits_tva_when_agence_assujettie(db, vehicule, client_obj):
+    from app.services.agence import get_or_create_agence
+
+    agence = get_or_create_agence()
+    agence.tva_applicable = True
+    agence.taux_tva = Decimal("20")
+    db.session.commit()
+
+    reservation = _make_reservation(db, vehicule, client_obj)  # 5 j × 300 = 1500 TTC
+    facture = create_facture_for_reservation(reservation)
+    db.session.commit()
+
+    assert facture.montant == Decimal("1500.00")
+    assert facture.montant_ht == Decimal("1250.00")
+    assert facture.montant_tva == Decimal("250.00")
+    assert facture.taux_tva == Decimal("20")
+    assert facture.montant_ht + facture.montant_tva == facture.montant
 
 
 def test_create_facture_is_idempotent(db, vehicule, client_obj):

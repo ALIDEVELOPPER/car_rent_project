@@ -260,6 +260,11 @@ window.I18N.ar = {
   },
 
   parametres: {
+    section_legal: "المعرّفات القانونية",
+    f_if: "التعريف الجبائي (IF)",
+    f_patente: "الرسم المهني (Patente)",
+    f_tva_applicable: "الوكالة خاضعة للضريبة على القيمة المضافة",
+    f_taux_tva: "نسبة الضريبة (%)",
     title: "الإعدادات",
     access_denied: "هذا القسم مخصَّص للمدير فقط.",
     agence_infos: "معلومات الوكالة",

@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 
@@ -25,6 +27,12 @@ def _serialize_agence(agence: Agence) -> dict:
         "mentions_legales": agence.mentions_legales,
         "conditions_contrat": agence.conditions_contrat,
         "langue": agence.langue,
+        "ice": agence.ice,
+        "rc": agence.rc,
+        "identifiant_fiscal": agence.identifiant_fiscal,
+        "patente": agence.patente,
+        "tva_applicable": agence.tva_applicable,
+        "taux_tva": str(agence.taux_tva),
     }
 
 
@@ -56,9 +64,24 @@ def update_agence():
     if "langue" in data and data["langue"] not in LANGUES_SUPPORTEES:
         return jsonify({"error": f"Langue non supportée : {data['langue']}"}), 400
 
-    for field in ("nom", "adresse", "telephone", "email", "mentions_legales", "conditions_contrat", "langue"):
+    for field in (
+        "nom", "adresse", "telephone", "email", "mentions_legales", "conditions_contrat", "langue",
+        "ice", "rc", "identifiant_fiscal", "patente",
+    ):
         if field in data:
-            setattr(agence, field, data[field])
+            setattr(agence, field, data[field] or None if field != "nom" else data[field])
+
+    if "tva_applicable" in data:
+        agence.tva_applicable = bool(data["tva_applicable"])
+
+    if "taux_tva" in data:
+        try:
+            taux = Decimal(str(data["taux_tva"]))
+        except (InvalidOperation, TypeError):
+            return jsonify({"error": "Taux de TVA invalide"}), 400
+        if not (0 <= taux <= 100):
+            return jsonify({"error": "Le taux de TVA doit être entre 0 et 100"}), 400
+        agence.taux_tva = taux
 
     db.session.commit()
     return jsonify(_serialize_agence(agence))

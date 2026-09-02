@@ -19,7 +19,11 @@ class Facture(db.Model):
     date_emission: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC), nullable=False
     )
-    montant: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    montant: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)  # total TTC payé par le client
+    # Détail TVA figé à l'émission (null = facture sans TVA).
+    montant_ht: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    montant_tva: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    taux_tva: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
     statut_paiement: Mapped[StatutPaiement] = mapped_column(
         db.Enum(StatutPaiement, values_callable=lambda x: [e.value for e in x]),
         default=StatutPaiement.EN_ATTENTE,

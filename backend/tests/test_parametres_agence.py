@@ -63,6 +63,23 @@ def test_langue_endpoint_default_fr(client):
     assert resp.json["langue"] == "fr"
 
 
+def test_update_agence_identifiants_legaux_et_tva(client, logged_in_admin):
+    resp = client.put("/api/parametres/agence", json={
+        "nom": "Atlas Car", "ice": "001234567000089", "rc": "45678",
+        "identifiant_fiscal": "12345678", "patente": "78901234",
+        "tva_applicable": True, "taux_tva": "20",
+    })
+    assert resp.status_code == 200
+    j = resp.json
+    assert j["ice"] == "001234567000089"
+    assert j["rc"] == "45678"
+    assert j["tva_applicable"] is True
+    assert j["taux_tva"] == "20.00"
+
+    resp = client.put("/api/parametres/agence", json={"taux_tva": "150"})
+    assert resp.status_code == 400
+
+
 def test_update_agence_langue(client, logged_in_admin):
     resp = client.put("/api/parametres/agence", json={"nom": "X", "langue": "ar"})
     assert resp.status_code == 200

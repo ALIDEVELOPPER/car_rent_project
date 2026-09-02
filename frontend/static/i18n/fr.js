@@ -260,6 +260,11 @@ window.I18N.fr = {
   },
 
   parametres: {
+    section_legal: "Identifiants légaux",
+    f_if: "Identifiant fiscal (IF)",
+    f_patente: "Patente",
+    f_tva_applicable: "Agence assujettie à la TVA",
+    f_taux_tva: "Taux de TVA (%)",
     title: "Paramètres",
     access_denied: "Cette section est réservée aux administrateurs.",
     agence_infos: "Informations de l'agence",
