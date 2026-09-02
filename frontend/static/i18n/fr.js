@@ -293,6 +293,15 @@ window.I18N.fr = {
   },
 
   parametres: {
+    backup_section: "Sauvegarde & restauration",
+    backup_hint: "Créez une sauvegarde complète (base + documents) et gardez-la sur une clé USB ou votre Drive. En cas de panne du PC, tout est récupérable.",
+    backup_password: "Mot de passe (chiffrement)",
+    backup_password_ph: "optionnel — recommandé",
+    backup_create: "Créer une sauvegarde",
+    backup_ok: "Sauvegarde créée",
+    restore_title: "Restaurer une sauvegarde",
+    restore_warn: "Attention : remplace toutes les données actuelles. L'application devra être redémarrée.",
+    restore_ok: "Restauration effectuée. Fermez puis rouvrez l'application pour terminer.",
     import_section: "Importer depuis Excel",
     import_hint: "Importez votre flotte et vos clients depuis un fichier .xlsx. Téléchargez le modèle pour connaître les colonnes attendues.",
     import_modele: "Télécharger le modèle",

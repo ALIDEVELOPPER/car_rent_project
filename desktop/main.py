@@ -20,6 +20,7 @@ if not getattr(sys, "frozen", False):
     sys.path.insert(0, str(BACKEND_DIR))
 
 from app import create_app  # noqa: E402
+from app.services.backup import installer_base_en_attente  # noqa: E402
 from app.paths import get_migrations_dir  # noqa: E402
 from flask_migrate import upgrade  # noqa: E402
 
@@ -73,6 +74,7 @@ def wait_for_server(url: str, timeout: float = 10.0) -> None:
 
 
 def main() -> None:
+    installer_base_en_attente()
     app = create_app("production")
 
     with app.app_context():

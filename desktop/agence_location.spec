@@ -21,6 +21,7 @@ hiddenimports = [
     "bidi",
     "bidi.algorithm",
     "openpyxl",
+    "pyzipper",
 ]
 
 if sys.platform.startswith("linux"):

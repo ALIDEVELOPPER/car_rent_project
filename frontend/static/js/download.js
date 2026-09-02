@@ -14,8 +14,14 @@
     });
   }
 
-  async function downloadAuthed(path, filename) {
-    const res = await fetch(path);
+  async function downloadAuthed(path, filename, opts) {
+    opts = opts || {};
+    const init = { method: opts.method || "GET" };
+    if (opts.body !== undefined) {
+      init.headers = { "Content-Type": "application/json" };
+      init.body = JSON.stringify(opts.body);
+    }
+    const res = await fetch(path, init);
     if (res.status === 401) {
       window.location.href = "/login";
       return { ok: false };

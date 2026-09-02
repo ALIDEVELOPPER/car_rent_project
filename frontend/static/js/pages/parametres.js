@@ -16,6 +16,10 @@ function parametresPage() {
     passwordForm: { mot_de_passe: "" },
     importing: false,
     importResult: null,
+    backupBusy: false,
+    backupPassword: "",
+    restorePassword: "",
+    restoreDone: false,
     passwordSaving: false,
     passwordError: "",
 
@@ -96,6 +100,41 @@ function parametresPage() {
         showToast(err.message, "error");
       } finally {
         this.importing = false;
+        input.value = "";
+      }
+    },
+
+    async creerSauvegarde() {
+      this.backupBusy = true;
+      try {
+        const r = await downloadAuthed("/api/sauvegarde", "krilia-sauvegarde.zip", {
+          method: "POST", body: { password: this.backupPassword || undefined },
+        });
+        if (r && r.ok && window.pywebview) showToast(t("parametres.backup_ok"));
+        else if (r && r.error) showToast(r.error, "error");
+      } catch (e) {
+        showToast(t("common.error_generic"), "error");
+      } finally {
+        this.backupBusy = false;
+      }
+    },
+
+    async restaurer(input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (!confirm(t("parametres.restore_warn"))) { input.value = ""; return; }
+      this.backupBusy = true;
+      this.restoreDone = false;
+      const fd = new FormData();
+      fd.append("fichier", file);
+      if (this.restorePassword) fd.append("password", this.restorePassword);
+      try {
+        await Api.upload("/sauvegarde/restauration", fd);
+        this.restoreDone = true;
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        this.backupBusy = false;
         input.value = "";
       }
     },
