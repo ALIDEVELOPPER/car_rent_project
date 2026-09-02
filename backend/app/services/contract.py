@@ -199,12 +199,18 @@ def render_contrat_pdf(reservation) -> bytes:
     elements.append(Spacer(1, 0.3 * cm))
 
     elements.append(
-        Paragraph(f"<b>{pl.tr(s['titre'])}</b>", ParagraphStyle("t", fontName=pl.font_bold, fontSize=14, alignment=1))
+        Paragraph(
+            f"<b>{pl.tr(s['titre'])}</b>",
+            ParagraphStyle("t", fontName=pl.font_bold, fontSize=14, leading=18, alignment=1, spaceAfter=5),
+        )
     )
     elements.append(
         Paragraph(
             pl.tr(f"{s['numero']} {reservation.id:05d}    —    {s['date_edition']} {_fmt_date(reservation.created_at)}"),
-            ParagraphStyle("sub", parent=normal, alignment=1, textColor=colors.HexColor("#555555")),
+            ParagraphStyle(
+                "sub", parent=normal, alignment=1, leading=12, spaceBefore=2,
+                textColor=colors.HexColor("#555555"),
+            ),
         )
     )
     elements.append(Spacer(1, 0.2 * cm))

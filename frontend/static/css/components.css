@@ -700,6 +700,11 @@ tbody tr:hover {
 
 [dir="rtl"] thead th { text-align: right; }
 
+/* Les numéros LTR (téléphone, immatriculation, e-mail, dates) ne doivent pas
+   être ré-ordonnés dans un tableau arabe : chaque cellule détecte sa direction. */
+[dir="rtl"] td,
+[dir="rtl"] th { unicode-bidi: plaintext; }
+
 [dir="rtl"] .toast-container { right: auto; left: var(--space-6); }
 
 [dir="rtl"] .toast-success,
