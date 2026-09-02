@@ -80,6 +80,31 @@ def test_create_reservation_negative_caution_rejected(client, logged_in_employe,
     assert resp.status_code == 400
 
 
+def test_caution_lifecycle(client, logged_in_employe, client_obj, vehicule):
+    r = _create_reservation(client, client_obj, vehicule, caution="3000").json
+    assert r["caution_statut"] == "non_recue"
+
+    resp = client.patch(f"/api/reservations/{r['id']}/caution", json={"statut": "recue"})
+    assert resp.status_code == 200
+    assert resp.json["caution_statut"] == "recue"
+
+    # retenue partielle
+    resp = client.patch(f"/api/reservations/{r['id']}/caution",
+                        json={"statut": "retenue", "retenue": "500", "note": "rayure aile avant"})
+    assert resp.status_code == 200
+    assert resp.json["caution_statut"] == "retenue"
+    assert resp.json["caution_retenue"] == "500.00"
+    assert resp.json["caution_note"] == "rayure aile avant"
+
+    # retenue > caution refusée
+    resp = client.patch(f"/api/reservations/{r['id']}/caution", json={"retenue": "9999"})
+    assert resp.status_code == 400
+
+    # repasser à restituée efface la retenue
+    resp = client.patch(f"/api/reservations/{r['id']}/caution", json={"statut": "restituee"})
+    assert resp.json["caution_retenue"] is None
+
+
 def test_contrat_pdf_download(client, logged_in_employe, client_obj, vehicule):
     created = _create_reservation(client, client_obj, vehicule).json
     resp = client.get(f"/api/reservations/{created['id']}/contrat/pdf")

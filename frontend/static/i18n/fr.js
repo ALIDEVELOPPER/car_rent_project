@@ -74,6 +74,8 @@ window.I18N.fr = {
   },
 
   dashboard: {
+    cautions: "Cautions à restituer",
+    aucune_caution: "Aucune caution à restituer",
     echeances: "Échéances véhicules",
     aucune_echeance: "Aucune échéance dans les 30 jours",
     ech_expire_j: "en retard de {n} j",
@@ -197,6 +199,16 @@ window.I18N.fr = {
   },
 
   reservations: {
+    caution_statut: {
+      non_recue: "Non reçue",
+      recue: "Reçue",
+      restituee: "Restituée",
+      retenue: "Retenue",
+    },
+    f_caution_statut: "Statut de la caution",
+    f_caution_retenue: "Montant retenu",
+    f_caution_note: "Motif de la retenue",
+    t_caution: "Caution mise à jour",
     title: "Réservations",
     new: "+ Nouvelle réservation",
     none: "Aucune réservation trouvée.",

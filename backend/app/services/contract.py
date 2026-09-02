@@ -91,6 +91,9 @@ STR = {
         "prix_jour": "Prix par jour",
         "total": "Montant total",
         "caution": "Caution (dépôt de garantie)",
+        "caution_statut": {
+            "non_recue": "non reçue", "recue": "reçue", "restituee": "restituée", "retenue": "retenue",
+        },
         "heure_depart": "Heure de départ",
         "heure_retour": "Heure de retour",
         "carburant_depart": "Niveau carburant départ",
@@ -133,6 +136,9 @@ STR = {
         "prix_jour": "الثمن اليومي",
         "total": "المبلغ الإجمالي",
         "caution": "الضمانة (مبلغ التأمين)",
+        "caution_statut": {
+            "non_recue": "غير مستلمة", "recue": "مستلمة", "restituee": "مُرجَعة", "retenue": "محتجزة",
+        },
         "heure_depart": "ساعة الانطلاق",
         "heure_retour": "ساعة الإرجاع",
         "carburant_depart": "مستوى الوقود عند الانطلاق",
@@ -267,7 +273,7 @@ def render_contrat_pdf(reservation) -> bytes:
                 (s["lieu"], reservation.lieu_prise_en_charge or _BLANK),
                 (s["prix_jour"], _fmt_money(reservation.prix_jour_applique, devise)),
                 (s["total"], _fmt_money(reservation.montant_total, devise)),
-                (s["caution"], _fmt_money(reservation.caution, devise)),
+                (s["caution"], f"{_fmt_money(reservation.caution, devise)}  ({s['caution_statut'][reservation.caution_statut.value]})"),
             ]
         )
     )

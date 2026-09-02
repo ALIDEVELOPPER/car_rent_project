@@ -5,6 +5,7 @@ from flask_login import login_required
 
 from app.services.dashboard_stats import (
     compute_agenda_jour,
+    compute_cautions_a_restituer,
     compute_echeances,
     compute_flotte,
     compute_impayes,
@@ -44,6 +45,7 @@ def get_dashboard():
             },
             "flotte": compute_flotte(),
             "echeances": compute_echeances(today, 30),
+            "cautions_a_restituer": compute_cautions_a_restituer(),
             "prochains_jours": compute_prochains_jours(today, 7),
         }
     )

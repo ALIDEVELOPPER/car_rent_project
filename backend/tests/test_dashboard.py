@@ -29,8 +29,12 @@ def test_dashboard_operationnel_shape_empty(client, logged_in_employe):
     resp = client.get("/api/dashboard")
     assert resp.status_code == 200
     data = resp.json
-    assert set(data.keys()) == {"date", "agenda", "impayes", "revenus", "flotte", "echeances", "prochains_jours"}
+    assert set(data.keys()) == {
+        "date", "agenda", "impayes", "revenus", "flotte", "echeances",
+        "cautions_a_restituer", "prochains_jours",
+    }
     assert data["echeances"] == []
+    assert data["cautions_a_restituer"] == []
     assert set(data["agenda"].keys()) == {"departs", "retours", "retards"}
     assert data["agenda"] == {"departs": [], "retours": [], "retards": []}
     assert data["impayes"]["nombre"] == 0

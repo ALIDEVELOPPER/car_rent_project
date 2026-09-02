@@ -13,6 +13,9 @@ function emptyReservationForm() {
     date_debut: "",
     date_fin: "",
     caution: "",
+    caution_statut: "non_recue",
+    caution_retenue: "",
+    caution_note: "",
     lieu_prise_en_charge: "",
     notes: "",
   };
@@ -103,6 +106,9 @@ function reservationsPage() {
         date_debut: r.date_debut,
         date_fin: r.date_fin,
         caution: r.caution && Number(r.caution) ? r.caution : "",
+        caution_statut: r.caution_statut || "non_recue",
+        caution_retenue: r.caution_retenue || "",
+        caution_note: r.caution_note || "",
         lieu_prise_en_charge: r.lieu_prise_en_charge || "",
         notes: r.notes || "",
       };

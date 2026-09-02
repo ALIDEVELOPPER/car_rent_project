@@ -49,3 +49,10 @@ class ModePaiement(str, enum.Enum):
     CARTE = "carte"
     VIREMENT = "virement"
     CHEQUE = "cheque"
+
+
+class StatutCaution(str, enum.Enum):
+    NON_RECUE = "non_recue"
+    RECUE = "recue"
+    RESTITUEE = "restituee"
+    RETENUE = "retenue"

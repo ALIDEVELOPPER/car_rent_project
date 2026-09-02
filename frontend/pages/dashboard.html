@@ -159,6 +159,23 @@
               </div>
             </div>
 
+            <!-- Cautions à restituer -->
+            <div class="card" style="margin-bottom: var(--space-5);" x-show="data.cautions_a_restituer && data.cautions_a_restituer.length">
+              <div class="flex-between" style="margin-bottom: 14px;">
+                <span class="w-title" x-text="t('dashboard.cautions')"></span>
+                <span class="w-count" x-text="data.cautions_a_restituer.length"></span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 20px;">
+                <template x-for="c in data.cautions_a_restituer" :key="c.id">
+                  <div class="ag-row">
+                    <span class="ag-dot" style="background: var(--color-info);"></span>
+                    <div class="ag-main"><div class="ag-name" x-text="c.client"></div><div class="ag-sub" x-text="c.vehicule"></div></div>
+                    <span style="font-size: 13px; font-weight: 800;" x-text="fmt(c.montant) + ' ' + devise"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+
             <!-- Row B : argent + flotte -->
             <div class="dash-grid">
               <!-- Impayés -->

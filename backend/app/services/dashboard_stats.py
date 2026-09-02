@@ -3,7 +3,12 @@ from decimal import Decimal
 
 from app.extensions import db
 from app.models import Client, Facture, Reservation, Vehicule
-from app.models.enums import StatutPaiement, StatutReservation, StatutVehicule
+from app.models.enums import (
+    StatutCaution,
+    StatutPaiement,
+    StatutReservation,
+    StatutVehicule,
+)
 
 
 def _to_datetime_utc(d: date) -> datetime:
@@ -140,6 +145,31 @@ def compute_echeances(reference_date: date, horizon_jours: int = 30) -> list[dic
             )
     resultats.sort(key=lambda e: e["jours_restants"])
     return resultats
+
+
+def compute_cautions_a_restituer() -> list[dict]:
+    """Réservations terminées dont la caution a été encaissée mais pas encore
+    rendue au client."""
+    reservations = db.session.execute(
+        db.select(Reservation)
+        .join(Client, Client.id == Reservation.client_id)
+        .filter(
+            Reservation.statut == StatutReservation.TERMINEE,
+            Reservation.caution > 0,
+            Reservation.caution_statut == StatutCaution.RECUE,
+        )
+        .order_by(Reservation.date_fin)
+    ).scalars().all()
+    return [
+        {
+            "id": r.id,
+            "client": f"{r.client.prenom} {r.client.nom}",
+            "vehicule": f"{r.vehicule.marque} {r.vehicule.modele}",
+            "montant": str(r.caution),
+            "date_fin": r.date_fin.isoformat(),
+        }
+        for r in reservations
+    ]
 
 
 def compute_flotte() -> dict:

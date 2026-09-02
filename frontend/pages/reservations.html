@@ -72,6 +72,11 @@
                   <td>
                     <span class="badge" :class="statutBadgeClass(r.statut)" x-text="statutLabel(r.statut)"></span>
                     <div class="text-secondary" style="font-size: var(--text-xs)" x-show="r.facture_id" x-text="t('reservations.facture_num', { id: r.facture_id })"></div>
+                    <div x-show="Number(r.caution) > 0" style="margin-top: 3px;">
+                      <span class="badge" style="font-size: 11px; height: 20px;"
+                        :class="{ 'badge-warning': r.caution_statut === 'non_recue', 'badge-info': r.caution_statut === 'recue', 'badge-success': r.caution_statut === 'restituee', 'badge-danger': r.caution_statut === 'retenue' }"
+                        x-text="t('reservations.f_caution') + ' : ' + t('reservations.caution_statut.' + r.caution_statut)"></span>
+                    </div>
                   </td>
                   <td>
                     <div class="flex gap-2" style="flex-wrap: wrap">
@@ -176,6 +181,25 @@
                   <label x-text="t('reservations.f_lieu')"></label>
                   <input class="input" type="text" x-model="form.lieu_prise_en_charge" />
                 </div>
+              </div>
+              <div class="form-row" x-show="Number(form.caution) > 0">
+                <div class="form-group">
+                  <label x-text="t('reservations.f_caution_statut')"></label>
+                  <select class="input" x-model="form.caution_statut">
+                    <option value="non_recue" x-text="t('reservations.caution_statut.non_recue')"></option>
+                    <option value="recue" x-text="t('reservations.caution_statut.recue')"></option>
+                    <option value="restituee" x-text="t('reservations.caution_statut.restituee')"></option>
+                    <option value="retenue" x-text="t('reservations.caution_statut.retenue')"></option>
+                  </select>
+                </div>
+                <div class="form-group" x-show="form.caution_statut === 'retenue'">
+                  <label x-text="t('reservations.f_caution_retenue')"></label>
+                  <input class="input" type="number" min="0" :max="form.caution" step="0.01" x-model="form.caution_retenue" />
+                </div>
+              </div>
+              <div class="form-group" x-show="Number(form.caution) > 0 && form.caution_statut === 'retenue'">
+                <label x-text="t('reservations.f_caution_note')"></label>
+                <input class="input" type="text" x-model="form.caution_note" />
               </div>
 
               <div class="form-group">

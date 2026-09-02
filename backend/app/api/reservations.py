@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 
 from app.extensions import db
 from app.models import Client, Reservation, Vehicule
-from app.models.enums import StatutReservation
+from app.models.enums import StatutCaution, StatutReservation
 from app.services.availability import is_vehicule_available, vehicule_reservable
 from app.services.contract import contrat_disponible, render_contrat_pdf
 from app.services.invoicing import create_facture_for_reservation
@@ -29,6 +29,9 @@ def _serialize_reservation(reservation: Reservation) -> dict:
         "prix_jour_applique": str(reservation.prix_jour_applique),
         "montant_total": str(reservation.montant_total),
         "caution": str(reservation.caution),
+        "caution_statut": reservation.caution_statut.value,
+        "caution_retenue": str(reservation.caution_retenue) if reservation.caution_retenue is not None else None,
+        "caution_note": reservation.caution_note,
         "lieu_prise_en_charge": reservation.lieu_prise_en_charge,
         "notes": reservation.notes,
         "created_at": reservation.created_at.isoformat(),
@@ -208,8 +211,42 @@ def update_reservation(reservation_id):
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
 
+    err = _apply_caution_fields(reservation, data)
+    if err:
+        return jsonify({"error": err}), 400
+
     db.session.commit()
     return jsonify(_serialize_reservation(reservation))
+
+
+def _apply_caution_fields(reservation: Reservation, data: dict) -> str | None:
+    """Applique caution_statut / caution_retenue / caution_note. Renvoie un
+    message d'erreur ou None."""
+    if "caution_statut" in data:
+        try:
+            reservation.caution_statut = StatutCaution(data["caution_statut"])
+        except ValueError:
+            return f"Statut de caution inconnu : {data['caution_statut']}"
+
+    if "caution_retenue" in data:
+        raw = data["caution_retenue"]
+        if raw in (None, ""):
+            reservation.caution_retenue = None
+        else:
+            try:
+                montant = Decimal(str(raw))
+            except (InvalidOperation, TypeError):
+                return "Montant retenu invalide"
+            if montant < 0 or montant > reservation.caution:
+                return "Le montant retenu doit être entre 0 et la caution"
+            reservation.caution_retenue = montant
+
+    if "caution_note" in data:
+        reservation.caution_note = data["caution_note"] or None
+
+    if reservation.caution_statut != StatutCaution.RETENUE:
+        reservation.caution_retenue = None
+    return None
 
 
 @bp.patch("/<int:reservation_id>/statut")
@@ -236,6 +273,24 @@ def change_statut(reservation_id):
 
     if nouveau_statut == StatutReservation.TERMINEE:
         create_facture_for_reservation(reservation)
+
+    db.session.commit()
+    return jsonify(_serialize_reservation(reservation))
+
+
+@bp.patch("/<int:reservation_id>/caution")
+@login_required
+def update_caution(reservation_id):
+    reservation = db.session.get(Reservation, reservation_id)
+    if reservation is None:
+        return jsonify({"error": "Réservation introuvable"}), 404
+
+    data = request.get_json(silent=True) or {}
+    # accepte les clés courtes (statut/retenue/note) ou longues (caution_*)
+    mapped = {f"caution_{k}" if k in ("statut", "retenue", "note") else k: v for k, v in data.items()}
+    err = _apply_caution_fields(reservation, mapped)
+    if err:
+        return jsonify({"error": err}), 400
 
     db.session.commit()
     return jsonify(_serialize_reservation(reservation))

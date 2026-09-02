@@ -74,6 +74,8 @@ window.I18N.ar = {
   },
 
   dashboard: {
+    cautions: "ضمانات يجب إرجاعها",
+    aucune_caution: "لا توجد ضمانات لإرجاعها",
     echeances: "استحقاقات السيارات",
     aucune_echeance: "لا استحقاق خلال 30 يومًا",
     ech_expire_j: "متأخر بـ {n} يوم",
@@ -197,6 +199,16 @@ window.I18N.ar = {
   },
 
   reservations: {
+    caution_statut: {
+      non_recue: "غير مستلمة",
+      recue: "مستلمة",
+      restituee: "مُرجَعة",
+      retenue: "محتجزة",
+    },
+    f_caution_statut: "حالة الضمانة",
+    f_caution_retenue: "المبلغ المحتجز",
+    f_caution_note: "سبب الاحتجاز",
+    t_caution: "تم تحديث الضمانة",
     title: "الحجوزات",
     new: "+ حجز جديد",
     none: "لم يُعثر على أي حجز.",
