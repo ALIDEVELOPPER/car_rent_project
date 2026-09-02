@@ -3,9 +3,48 @@ from datetime import date
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
-from app.services.dashboard_stats import compute_kpis, compute_revenus_par_mois, compute_top_vehicules
+from app.services.dashboard_stats import (
+    compute_agenda_jour,
+    compute_flotte,
+    compute_impayes,
+    compute_kpis,
+    compute_prochains_jours,
+    compute_revenus_du_mois,
+    compute_revenus_mois_precedent,
+    compute_revenus_par_mois,
+    compute_top_vehicules,
+)
 
 bp = Blueprint("dashboard", __name__, url_prefix="/api/dashboard")
+
+
+@bp.get("")
+@login_required
+def get_dashboard():
+    """Vue opérationnelle : ce qu'une agence regarde chaque jour."""
+    today = date.today()
+    agenda = compute_agenda_jour(today)
+    impayes = compute_impayes()
+    revenus_mois = compute_revenus_du_mois(today)
+    revenus_prec = compute_revenus_mois_precedent(today)
+    variation = None
+    if revenus_prec > 0:
+        variation = round(float((revenus_mois - revenus_prec) / revenus_prec * 100), 1)
+
+    return jsonify(
+        {
+            "date": today.isoformat(),
+            "agenda": agenda,
+            "impayes": {"total": str(impayes["total"]), "nombre": impayes["nombre"]},
+            "revenus": {
+                "mois": str(revenus_mois),
+                "mois_precedent": str(revenus_prec),
+                "variation_pct": variation,
+            },
+            "flotte": compute_flotte(),
+            "prochains_jours": compute_prochains_jours(today, 7),
+        }
+    )
 
 
 @bp.get("/kpis")

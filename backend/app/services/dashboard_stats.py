@@ -1,8 +1,8 @@
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 from app.extensions import db
-from app.models import Facture, Reservation, Vehicule
+from app.models import Client, Facture, Reservation, Vehicule
 from app.models.enums import StatutPaiement, StatutReservation, StatutVehicule
 
 
@@ -50,6 +50,15 @@ def compute_revenus_du_mois(reference_date: date) -> Decimal:
     return compute_revenus_periode(debut_mois, debut_mois_suivant)
 
 
+def compute_revenus_mois_precedent(reference_date: date) -> Decimal:
+    debut_mois = reference_date.replace(day=1)
+    if debut_mois.month == 1:
+        debut_precedent = date(debut_mois.year - 1, 12, 1)
+    else:
+        debut_precedent = date(debut_mois.year, debut_mois.month - 1, 1)
+    return compute_revenus_periode(debut_precedent, debut_mois)
+
+
 def count_vehicules_disponibles() -> int:
     return db.session.execute(
         db.select(db.func.count())
@@ -93,6 +102,112 @@ def compute_revenus_par_mois(reference_date: date, nombre_mois: int = 12) -> lis
         fin = date(annee_fin, mois_fin, 1)
         resultats.append({"mois": f"{annee:04d}-{mois:02d}", "revenus": compute_revenus_periode(debut, fin)})
     return resultats
+
+
+def compute_flotte() -> dict:
+    rows = db.session.execute(
+        db.select(Vehicule.statut, db.func.count()).group_by(Vehicule.statut)
+    ).all()
+    counts = {s.value: 0 for s in StatutVehicule}
+    for statut, n in rows:
+        counts[statut.value] = n
+    counts["total"] = sum(v for k, v in counts.items() if k != "total")
+    return counts
+
+
+def compute_impayes() -> dict:
+    row = db.session.execute(
+        db.select(
+            db.func.coalesce(db.func.sum(Facture.montant), 0),
+            db.func.count(Facture.id),
+        ).filter(Facture.statut_paiement == StatutPaiement.EN_ATTENTE)
+    ).one()
+    return {"total": Decimal(row[0]), "nombre": row[1]}
+
+
+def _serialize_ligne_agenda(reservation: Reservation, reference_date: date) -> dict:
+    client = reservation.client
+    vehicule = reservation.vehicule
+    retard_jours = max(0, (reference_date - reservation.date_fin).days)
+    return {
+        "id": reservation.id,
+        "client": f"{client.prenom} {client.nom}",
+        "vehicule": f"{vehicule.marque} {vehicule.modele}",
+        "immatriculation": vehicule.immatriculation,
+        "date_debut": reservation.date_debut.isoformat(),
+        "date_fin": reservation.date_fin.isoformat(),
+        "statut": reservation.statut.value,
+        "retard_jours": retard_jours,
+    }
+
+
+def compute_agenda_jour(reference_date: date) -> dict:
+    def _q():
+        return (
+            db.select(Reservation)
+            .join(Client, Client.id == Reservation.client_id)
+            .join(Vehicule, Vehicule.id == Reservation.vehicule_id)
+        )
+
+    departs = db.session.execute(
+        _q().filter(
+            Reservation.date_debut == reference_date,
+            Reservation.statut.in_([StatutReservation.EN_ATTENTE, StatutReservation.CONFIRMEE]),
+        ).order_by(Reservation.id)
+    ).scalars().all()
+
+    retours = db.session.execute(
+        _q().filter(
+            Reservation.date_fin == reference_date,
+            Reservation.statut == StatutReservation.EN_COURS,
+        ).order_by(Reservation.id)
+    ).scalars().all()
+
+    retards = db.session.execute(
+        _q().filter(
+            Reservation.date_fin < reference_date,
+            Reservation.statut == StatutReservation.EN_COURS,
+        ).order_by(Reservation.date_fin)
+    ).scalars().all()
+
+    return {
+        "departs": [_serialize_ligne_agenda(r, reference_date) for r in departs],
+        "retours": [_serialize_ligne_agenda(r, reference_date) for r in retours],
+        "retards": [_serialize_ligne_agenda(r, reference_date) for r in retards],
+    }
+
+
+def compute_prochains_jours(reference_date: date, jours: int = 7) -> list[dict]:
+    fin = reference_date + timedelta(days=jours)
+    reservations = db.session.execute(
+        db.select(Reservation)
+        .join(Client, Client.id == Reservation.client_id)
+        .join(Vehicule, Vehicule.id == Reservation.vehicule_id)
+        .filter(
+            Reservation.date_debut >= reference_date,
+            Reservation.date_debut < fin,
+            Reservation.statut.in_([StatutReservation.EN_ATTENTE, StatutReservation.CONFIRMEE]),
+        )
+        .order_by(Reservation.date_debut, Reservation.id)
+    ).scalars().all()
+
+    par_jour: dict[str, list] = {}
+    for r in reservations:
+        nb_jours = (r.date_fin - r.date_debut).days
+        par_jour.setdefault(r.date_debut.isoformat(), []).append(
+            {
+                "id": r.id,
+                "vehicule": f"{r.vehicule.marque} {r.vehicule.modele}",
+                "client": f"{r.client.prenom} {r.client.nom}",
+                "nb_jours": nb_jours,
+            }
+        )
+
+    return [
+        {"date": (reference_date + timedelta(days=i)).isoformat(),
+         "reservations": par_jour.get((reference_date + timedelta(days=i)).isoformat(), [])}
+        for i in range(jours)
+    ]
 
 
 def compute_top_vehicules(limit: int = 5) -> list[dict]:

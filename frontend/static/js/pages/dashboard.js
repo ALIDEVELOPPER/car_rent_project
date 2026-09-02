@@ -1,117 +1,73 @@
-let revenusChart = null;
-let topVehiculesChart = null;
+const JOURS_COURTS = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
+const JOURS_COURTS_AR = ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"];
 
-function chartColors() {
-  const styles = getComputedStyle(document.documentElement);
+function fmtMontant(v) {
+  const n = Number(v);
+  return n.toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+}
+
+function dashboardPage() {
   return {
-    text: styles.getPropertyValue("--color-text-secondary").trim(),
-    grid: styles.getPropertyValue("--color-border").trim(),
-    primary: styles.getPropertyValue("--color-primary").trim(),
-    success: styles.getPropertyValue("--color-success").trim(),
+    loading: true,
+    data: null,
+    revenus6: [],
+    devise: "MAD",
+
+    async init() {
+      if (this._inited) return;
+      this._inited = true;
+      await requireAuth("");
+      this.devise = window.currentLang && window.currentLang() === "ar" ? "درهم" : "MAD";
+      try {
+        const [d, r] = await Promise.all([
+          Api.get("/dashboard"),
+          Api.get("/dashboard/revenus-par-mois?mois=6").catch(() => []),
+        ]);
+        this.data = d;
+        this.revenus6 = r.map((x) => Number(x.revenus));
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    get dateLabel() {
+      if (!this.data) return "";
+      const loc = window.currentLang && window.currentLang() === "ar" ? "ar-MA" : "fr-FR";
+      return new Date(this.data.date + "T00:00:00").toLocaleDateString(loc, {
+        weekday: "long", day: "numeric", month: "long", year: "numeric",
+      });
+    },
+
+    // ---- flotte donut (dispo / loué / maintenance / hors service) ----
+    get donutSegments() {
+      const f = (this.data && this.data.flotte) || {};
+      const total = (f.disponible || 0) + (f.loue || 0) + (f.maintenance || 0) + (f.hors_service || 0);
+      if (!total) return { total: 0, segs: [] };
+      const colors = { disponible: "#4f46e5", loue: "#f59e0b", maintenance: "#94a3b8", hors_service: "#cbd5e1" };
+      let offset = 25;
+      const segs = ["disponible", "loue", "maintenance", "hors_service"]
+        .filter((k) => f[k])
+        .map((k) => {
+          const pct = (f[k] / total) * 100;
+          const seg = { key: k, color: colors[k], dash: `${pct.toFixed(2)} ${(100 - pct).toFixed(2)}`, offset };
+          offset = (offset - pct + 100) % 100;
+          return seg;
+        });
+      return { total, segs, f };
+    },
+
+    get sparkMax() {
+      return Math.max(1, ...this.revenus6);
+    },
+
+    jourCourt(iso) {
+      const ar = window.currentLang && window.currentLang() === "ar";
+      const d = new Date(iso + "T00:00:00");
+      return (ar ? JOURS_COURTS_AR : JOURS_COURTS)[d.getDay()] + " " + d.getDate();
+    },
+
+    fmt: fmtMontant,
   };
 }
-
-function formatMontant(value) {
-  return `${Number(value).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MAD`;
-}
-
-async function loadKpis() {
-  const kpis = await Api.get("/dashboard/kpis");
-  document.getElementById("kpi-taux-occupation").textContent = `${kpis.taux_occupation}%`;
-  document.getElementById("kpi-revenus-mois").textContent = formatMontant(kpis.revenus_du_mois);
-  document.getElementById("kpi-vehicules-disponibles").textContent = kpis.vehicules_disponibles;
-  document.getElementById("kpi-reservations-en-cours").textContent = kpis.reservations_en_cours;
-}
-
-async function loadRevenusChart() {
-  const data = await Api.get("/dashboard/revenus-par-mois?mois=12");
-  const colors = chartColors();
-  const ctx = document.getElementById("chart-revenus");
-  if (!ctx) return;
-
-  if (revenusChart) revenusChart.destroy();
-  revenusChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: data.map((d) => d.mois),
-      datasets: [
-        {
-          label: "Revenus (MAD)",
-          data: data.map((d) => Number(d.revenus)),
-          borderColor: colors.primary,
-          backgroundColor: `${colors.primary}33`,
-          tension: 0.3,
-          fill: true,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: colors.text }, grid: { color: colors.grid } },
-        y: { ticks: { color: colors.text }, grid: { color: colors.grid }, beginAtZero: true },
-      },
-    },
-  });
-}
-
-async function loadTopVehiculesChart() {
-  const data = await Api.get("/dashboard/top-vehicules?limit=5");
-  const container = document.getElementById("top-vehicules-container");
-  if (!container) return;
-
-  if (data.length === 0) {
-    if (topVehiculesChart) {
-      topVehiculesChart.destroy();
-      topVehiculesChart = null;
-    }
-    container.innerHTML = `<p class="empty-state">${window.t("dashboard.aucune_reservation")}</p>`;
-    return;
-  }
-
-  if (!document.getElementById("chart-top-vehicules")) {
-    container.innerHTML = '<canvas id="chart-top-vehicules" height="120"></canvas>';
-  }
-
-  const colors = chartColors();
-  const ctx = document.getElementById("chart-top-vehicules");
-
-  if (topVehiculesChart) topVehiculesChart.destroy();
-  topVehiculesChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: data.map((v) => `${v.marque} ${v.modele}`),
-      datasets: [
-        {
-          label: "Réservations",
-          data: data.map((v) => v.nombre_reservations),
-          backgroundColor: colors.success,
-        },
-      ],
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: colors.text, precision: 0 }, grid: { color: colors.grid }, beginAtZero: true },
-        y: { ticks: { color: colors.text }, grid: { display: false } },
-      },
-    },
-  });
-}
-
-async function loadDashboard() {
-  await Promise.all([loadKpis(), loadRevenusChart(), loadTopVehiculesChart()]);
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  await requireAuth("");
-  await loadDashboard();
-});
-
-document.addEventListener("themechange", () => {
-  loadRevenusChart();
-  loadTopVehiculesChart();
-});
