@@ -196,7 +196,7 @@
             </div>
 
             <!-- Row C : 7 prochains jours -->
-            <div class="card">
+            <div class="card" style="margin-bottom: var(--space-5);">
               <div class="flex-between" style="margin-bottom: 16px;">
                 <span class="w-title" x-text="t('dashboard.prochains_jours')"></span>
                 <span style="font-size: 12.5px; color: var(--color-text-muted);"
@@ -214,12 +214,22 @@
               </div>
             </div>
 
+            <!-- Row D : revenus sur l'année -->
+            <div class="card">
+              <div class="flex-between" style="margin-bottom: 16px;">
+                <span class="w-title" x-text="t('dashboard.revenus_par_mois')"></span>
+                <span style="font-size: 12.5px; color: var(--color-text-muted);" x-text="t('dashboard.revenus_12_mois')"></span>
+              </div>
+              <div style="height: 240px;"><canvas id="chart-revenus-annee"></canvas></div>
+            </div>
+
           </div>
         </template>
       </div>
     </div>
   </div>
 
+  <script src="/static/vendor/chartjs/chart.umd.js"></script>
   <script src="/static/vendor/alpinejs/alpine.min.js" defer></script>
   <script src="/static/js/api.js"></script>
   <script src="/static/js/components/sidebar.js"></script>

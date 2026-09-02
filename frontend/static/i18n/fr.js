@@ -91,6 +91,7 @@ window.I18N.fr = {
     vehicules_disponibles: "Véhicules disponibles",
     reservations_en_cours: "Réservations en cours",
     revenus_par_mois: "Revenus par mois",
+    revenus_12_mois: "12 derniers mois",
     top_vehicules: "Top véhicules loués",
     aucune_donnee: "Aucune donnée",
     aucune_reservation: "Aucune réservation enregistrée pour le moment.",

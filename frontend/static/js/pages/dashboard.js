@@ -13,23 +13,77 @@ function dashboardPage() {
     revenus6: [],
     devise: "MAD",
 
+    revenusAnnee: [],
+    _chart: null,
+
     async init() {
       if (this._inited) return;
       this._inited = true;
       await requireAuth("");
       this.devise = window.currentLang && window.currentLang() === "ar" ? "درهم" : "MAD";
       try {
-        const [d, r] = await Promise.all([
+        const [d, r12] = await Promise.all([
           Api.get("/dashboard"),
-          Api.get("/dashboard/revenus-par-mois?mois=6").catch(() => []),
+          Api.get("/dashboard/revenus-par-mois?mois=12").catch(() => []),
         ]);
         this.data = d;
-        this.revenus6 = r.map((x) => Number(x.revenus));
+        this.revenusAnnee = r12;
+        this.revenus6 = r12.slice(-6).map((x) => Number(x.revenus));
       } catch (err) {
         showToast(err.message, "error");
       } finally {
         this.loading = false;
       }
+      this.$nextTick(() => this.renderRevenusChart());
+      document.addEventListener("themechange", () => this.renderRevenusChart());
+    },
+
+    moisLabel(iso) {
+      const [y, m] = iso.split("-").map(Number);
+      const loc = window.currentLang && window.currentLang() === "ar" ? "ar-MA" : "fr-FR";
+      return new Date(y, m - 1, 1).toLocaleDateString(loc, { month: "short" });
+    },
+
+    renderRevenusChart() {
+      const ctx = document.getElementById("chart-revenus-annee");
+      if (!ctx || !window.Chart || !this.revenusAnnee.length) return;
+      const cs = getComputedStyle(document.documentElement);
+      const primary = cs.getPropertyValue("--color-primary").trim() || "#4f46e5";
+      const text = cs.getPropertyValue("--color-text-muted").trim() || "#9aa1ac";
+      const grid = cs.getPropertyValue("--color-border").trim() || "#eceef2";
+      if (this._chart) this._chart.destroy();
+      this._chart = new window.Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: this.revenusAnnee.map((x) => this.moisLabel(x.mois)),
+          datasets: [
+            {
+              data: this.revenusAnnee.map((x) => Number(x.revenus)),
+              backgroundColor: primary,
+              borderRadius: 6,
+              maxBarThickness: 34,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: { label: (c) => `${fmtMontant(c.parsed.y)} ${this.devise}` },
+            },
+          },
+          scales: {
+            x: { ticks: { color: text }, grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              ticks: { color: text, callback: (v) => fmtMontant(v) },
+              grid: { color: grid },
+            },
+          },
+        },
+      });
     },
 
     get dateLabel() {

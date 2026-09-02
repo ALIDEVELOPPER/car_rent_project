@@ -91,6 +91,7 @@ window.I18N.ar = {
     vehicules_disponibles: "السيارات المتوفرة",
     reservations_en_cours: "الحجوزات الجارية",
     revenus_par_mois: "الإيرادات حسب الشهر",
+    revenus_12_mois: "آخر 12 شهرًا",
     top_vehicules: "أكثر السيارات كراءً",
     aucune_donnee: "لا توجد بيانات",
     aucune_reservation: "لا توجد أي حجوزات مسجَّلة حتى الآن.",
