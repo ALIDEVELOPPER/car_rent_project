@@ -66,7 +66,20 @@ window.I18N.fr = {
     mismatch: "Les mots de passe ne correspondent pas",
   },
 
+  echeance: {
+    assurance: "Assurance",
+    visite_technique: "Visite technique",
+    vignette: "Vignette",
+    vidange: "Vidange",
+  },
+
   dashboard: {
+    echeances: "Échéances véhicules",
+    aucune_echeance: "Aucune échéance dans les 30 jours",
+    ech_expire_j: "en retard de {n} j",
+    ech_expire_0: "à échéance aujourd'hui",
+    ech_dans_j: "dans {n} j",
+    ech_dans_0: "aujourd'hui",
     departs_jour: "Départs aujourd'hui",
     retours_attendus: "Retours attendus",
     retards: "Retards",
@@ -132,6 +145,12 @@ window.I18N.fr = {
   },
 
   vehicules: {
+    section_echeances: "Échéances administratives",
+    f_assurance: "Assurance — expire le",
+    f_visite: "Visite technique — expire le",
+    f_vignette: "Vignette — expire le",
+    f_vidange: "Prochaine vidange — le",
+    f_vidange_km: "Prochaine vidange — à (km)",
     title: "Véhicules",
     search_ph: "Rechercher un véhicule...",
     new: "+ Nouveau véhicule",

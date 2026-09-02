@@ -195,6 +195,20 @@
                 </select>
               </div>
 
+              <div class="card-title" style="margin: var(--space-4) 0 var(--space-2); font-size: var(--text-sm);" x-text="t('vehicules.section_echeances')"></div>
+              <div class="form-row">
+                <div class="form-group"><label x-text="t('vehicules.f_assurance')"></label><input class="input" type="date" x-model="form.assurance_expire_le" /></div>
+                <div class="form-group"><label x-text="t('vehicules.f_visite')"></label><input class="input" type="date" x-model="form.visite_technique_expire_le" /></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label x-text="t('vehicules.f_vignette')"></label><input class="input" type="date" x-model="form.vignette_expire_le" /></div>
+                <div class="form-group"><label x-text="t('vehicules.f_vidange')"></label><input class="input" type="date" x-model="form.prochaine_vidange_le" /></div>
+              </div>
+              <div class="form-group">
+                <label x-text="t('vehicules.f_vidange_km')"></label>
+                <input class="input" type="number" min="0" x-model="form.prochaine_vidange_km" />
+              </div>
+
               <template x-if="editing">
                 <div class="form-group">
                   <label x-text="t('vehicules.f_photo')">Photo</label>

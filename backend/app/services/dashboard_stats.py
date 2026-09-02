@@ -104,6 +104,44 @@ def compute_revenus_par_mois(reference_date: date, nombre_mois: int = 12) -> lis
     return resultats
 
 
+ECHEANCE_CHAMPS = [
+    ("assurance", "assurance_expire_le"),
+    ("visite_technique", "visite_technique_expire_le"),
+    ("vignette", "vignette_expire_le"),
+    ("vidange", "prochaine_vidange_le"),
+]
+
+
+def compute_echeances(reference_date: date, horizon_jours: int = 30) -> list[dict]:
+    """Échéances administratives des véhicules déjà passées ou à moins de
+    `horizon_jours`, triées de la plus urgente à la moins urgente."""
+    vehicules = db.session.execute(
+        db.select(Vehicule).filter(Vehicule.statut != StatutVehicule.HORS_SERVICE)
+    ).scalars().all()
+
+    limite = reference_date + timedelta(days=horizon_jours)
+    resultats = []
+    for v in vehicules:
+        for type_, champ in ECHEANCE_CHAMPS:
+            echeance = getattr(v, champ)
+            if echeance is None or echeance > limite:
+                continue
+            jours = (echeance - reference_date).days
+            resultats.append(
+                {
+                    "vehicule_id": v.id,
+                    "vehicule": f"{v.marque} {v.modele}",
+                    "immatriculation": v.immatriculation,
+                    "type": type_,
+                    "date": echeance.isoformat(),
+                    "jours_restants": jours,
+                    "en_retard": jours < 0,
+                }
+            )
+    resultats.sort(key=lambda e: e["jours_restants"])
+    return resultats
+
+
 def compute_flotte() -> dict:
     rows = db.session.execute(
         db.select(Vehicule.statut, db.func.count()).group_by(Vehicule.statut)

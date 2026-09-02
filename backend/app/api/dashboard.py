@@ -5,6 +5,7 @@ from flask_login import login_required
 
 from app.services.dashboard_stats import (
     compute_agenda_jour,
+    compute_echeances,
     compute_flotte,
     compute_impayes,
     compute_kpis,
@@ -42,6 +43,7 @@ def get_dashboard():
                 "variation_pct": variation,
             },
             "flotte": compute_flotte(),
+            "echeances": compute_echeances(today, 30),
             "prochains_jours": compute_prochains_jours(today, 7),
         }
     )

@@ -18,6 +18,11 @@ function emptyVehiculeForm() {
     transmission: "",
     tarif_jour: "",
     statut: "disponible",
+    assurance_expire_le: "",
+    visite_technique_expire_le: "",
+    vignette_expire_le: "",
+    prochaine_vidange_le: "",
+    prochaine_vidange_km: "",
   };
 }
 
@@ -93,6 +98,11 @@ function vehiculesPage() {
         transmission: vehicule.transmission || "",
         tarif_jour: vehicule.tarif_jour,
         statut: vehicule.statut,
+        assurance_expire_le: vehicule.assurance_expire_le || "",
+        visite_technique_expire_le: vehicule.visite_technique_expire_le || "",
+        vignette_expire_le: vehicule.vignette_expire_le || "",
+        prochaine_vidange_le: vehicule.prochaine_vidange_le || "",
+        prochaine_vidange_km: vehicule.prochaine_vidange_km ?? "",
       };
       this.formError = "";
       this.modalOpen = true;
@@ -110,6 +120,8 @@ function vehiculesPage() {
       payload.kilometrage = payload.kilometrage !== "" ? Number(payload.kilometrage) : null;
       payload.carburant = payload.carburant || null;
       payload.transmission = payload.transmission || null;
+      ["assurance_expire_le", "visite_technique_expire_le", "vignette_expire_le", "prochaine_vidange_le"].forEach((k) => { payload[k] = payload[k] || null; });
+      payload.prochaine_vidange_km = payload.prochaine_vidange_km !== "" ? Number(payload.prochaine_vidange_km) : null;
 
       try {
         if (this.editing) {

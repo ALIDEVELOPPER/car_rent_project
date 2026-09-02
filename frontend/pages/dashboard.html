@@ -136,6 +136,29 @@
               </div>
             </div>
 
+            <!-- Échéances véhicules -->
+            <div class="card" style="margin-bottom: var(--space-5);" x-show="data.echeances.length">
+              <div class="flex-between" style="margin-bottom: 14px;">
+                <span class="w-title" style="display:flex; align-items:center; gap:7px; color: var(--color-warning);">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+                  <span x-text="t('dashboard.echeances')"></span>
+                </span>
+                <span class="w-count" style="background: var(--color-warning-bg); color: var(--color-warning);" x-text="data.echeances.length"></span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px 20px;">
+                <template x-for="e in data.echeances" :key="e.vehicule_id + '-' + e.type">
+                  <div class="ag-row">
+                    <span class="ag-dot" :style="`background: var(${e.en_retard ? '--color-danger' : '--color-warning'})`"></span>
+                    <div class="ag-main">
+                      <div class="ag-name"><span x-text="t('echeance.' + e.type)"></span> — <span x-text="e.vehicule"></span></div>
+                      <div class="ag-sub" x-text="e.immatriculation"></div>
+                    </div>
+                    <span style="font-size: 12px; font-weight: 700;" :style="`color: var(${e.en_retard ? '--color-danger' : '--color-warning'})`" x-text="echeanceDelai(e)"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+
             <!-- Row B : argent + flotte -->
             <div class="dash-grid">
               <!-- Impayés -->

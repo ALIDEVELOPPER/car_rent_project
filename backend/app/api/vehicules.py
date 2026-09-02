@@ -32,6 +32,11 @@ def _serialize_vehicule(vehicule: Vehicule, include_reservations: bool = False) 
         "tarif_jour": str(vehicule.tarif_jour),
         "statut": vehicule.statut.value,
         "photo_url": vehicule.photo_url,
+        "assurance_expire_le": vehicule.assurance_expire_le.isoformat() if vehicule.assurance_expire_le else None,
+        "visite_technique_expire_le": vehicule.visite_technique_expire_le.isoformat() if vehicule.visite_technique_expire_le else None,
+        "vignette_expire_le": vehicule.vignette_expire_le.isoformat() if vehicule.vignette_expire_le else None,
+        "prochaine_vidange_le": vehicule.prochaine_vidange_le.isoformat() if vehicule.prochaine_vidange_le else None,
+        "prochaine_vidange_km": vehicule.prochaine_vidange_km,
         "created_at": vehicule.created_at.isoformat(),
     }
     if include_reservations:
@@ -77,6 +82,15 @@ def _apply_vehicule_fields(vehicule: Vehicule, data: dict) -> None:
         raw = data["statut"]
         if raw:
             vehicule.statut = StatutVehicule(raw)
+
+    for champ in ("assurance_expire_le", "visite_technique_expire_le", "vignette_expire_le", "prochaine_vidange_le"):
+        if champ in data:
+            raw = data[champ]
+            setattr(vehicule, champ, date.fromisoformat(raw) if raw else None)
+
+    if "prochaine_vidange_km" in data:
+        raw = data["prochaine_vidange_km"]
+        vehicule.prochaine_vidange_km = int(raw) if raw not in (None, "") else None
 
 
 @bp.get("")

@@ -1,7 +1,7 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Integer, Numeric, String
+from sqlalchemy import Date, DateTime, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.extensions import db
@@ -34,6 +34,14 @@ class Vehicule(db.Model):
         nullable=False,
     )
     photo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    # Échéances administratives — servent aux rappels du tableau de bord.
+    assurance_expire_le: Mapped[date | None] = mapped_column(Date, nullable=True)
+    visite_technique_expire_le: Mapped[date | None] = mapped_column(Date, nullable=True)
+    vignette_expire_le: Mapped[date | None] = mapped_column(Date, nullable=True)
+    prochaine_vidange_le: Mapped[date | None] = mapped_column(Date, nullable=True)
+    prochaine_vidange_km: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC), nullable=False
     )

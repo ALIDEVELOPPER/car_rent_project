@@ -66,7 +66,20 @@ window.I18N.ar = {
     mismatch: "كلمتا المرور غير متطابقتين",
   },
 
+  echeance: {
+    assurance: "التأمين",
+    visite_technique: "الفحص التقني",
+    vignette: "الفيبيت (الرسم السنوي)",
+    vidange: "تغيير الزيت",
+  },
+
   dashboard: {
+    echeances: "استحقاقات السيارات",
+    aucune_echeance: "لا استحقاق خلال 30 يومًا",
+    ech_expire_j: "متأخر بـ {n} يوم",
+    ech_expire_0: "يستحق اليوم",
+    ech_dans_j: "خلال {n} يوم",
+    ech_dans_0: "اليوم",
     departs_jour: "المغادرات اليوم",
     retours_attendus: "عمليات الإرجاع المرتقبة",
     retards: "التأخيرات",
@@ -132,6 +145,12 @@ window.I18N.ar = {
   },
 
   vehicules: {
+    section_echeances: "الاستحقاقات الإدارية",
+    f_assurance: "التأمين — ينتهي في",
+    f_visite: "الفحص التقني — ينتهي في",
+    f_vignette: "الفيبيت — ينتهي في",
+    f_vidange: "تغيير الزيت القادم — في",
+    f_vidange_km: "تغيير الزيت القادم — عند (كلم)",
     title: "السيارات",
     search_ph: "ابحث عن سيارة...",
     new: "+ سيارة جديدة",

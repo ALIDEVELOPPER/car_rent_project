@@ -116,6 +116,12 @@ function dashboardPage() {
       return Math.max(1, ...this.revenus6);
     },
 
+    echeanceDelai(e) {
+      const n = e.jours_restants;
+      if (e.en_retard) return n === 0 ? t("dashboard.ech_expire_0") : t("dashboard.ech_expire_j", { n: -n });
+      return n === 0 ? t("dashboard.ech_dans_0") : t("dashboard.ech_dans_j", { n });
+    },
+
     jourCourt(iso) {
       const ar = window.currentLang && window.currentLang() === "ar";
       const d = new Date(iso + "T00:00:00");

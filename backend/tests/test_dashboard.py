@@ -29,7 +29,8 @@ def test_dashboard_operationnel_shape_empty(client, logged_in_employe):
     resp = client.get("/api/dashboard")
     assert resp.status_code == 200
     data = resp.json
-    assert set(data.keys()) == {"date", "agenda", "impayes", "revenus", "flotte", "prochains_jours"}
+    assert set(data.keys()) == {"date", "agenda", "impayes", "revenus", "flotte", "echeances", "prochains_jours"}
+    assert data["echeances"] == []
     assert set(data["agenda"].keys()) == {"departs", "retours", "retards"}
     assert data["agenda"] == {"departs": [], "retours": [], "retards": []}
     assert data["impayes"]["nombre"] == 0
@@ -64,9 +65,19 @@ def test_dashboard_operationnel_with_data(client, logged_in_employe, db):
                                prix_jour_applique=Decimal("180"), montant_total=Decimal("540")))
     db.session.commit()
 
+    # échéances : assurance déjà expirée + visite technique dans 10 j
+    v1.assurance_expire_le = today - timedelta(days=3)
+    v2.visite_technique_expire_le = today + timedelta(days=10)
+    v2.vignette_expire_le = today + timedelta(days=200)  # hors horizon
+    db.session.commit()
+
     data = client.get("/api/dashboard").json
     assert len(data["agenda"]["retards"]) == 1
     assert data["agenda"]["retards"][0]["retard_jours"] == 2
+    ech = data["echeances"]
+    assert len(ech) == 2
+    assert ech[0]["type"] == "assurance" and ech[0]["en_retard"] is True
+    assert ech[1]["type"] == "visite_technique" and ech[1]["jours_restants"] == 10
     assert len(data["agenda"]["departs"]) == 1
     assert data["flotte"]["loue"] == 1
     assert data["flotte"]["disponible"] == 1
