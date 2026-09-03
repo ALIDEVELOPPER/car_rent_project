@@ -38,6 +38,11 @@ Name: "desktopicon"; Description: "Créer un raccourci sur le Bureau"; GroupDesc
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Programme d'amorçage du composant d'affichage Microsoft Edge WebView2.
+; Récupéré par la CI (build-desktop.yml) avant la compilation de l'installateur.
+; Sans ce composant, l'interface de Krilia reste blanche sur les postes Windows
+; qui ne l'ont pas déjà (Windows 10 non à jour, images LTSC, etc.).
+Source: "MicrosoftEdgeWebview2Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
@@ -45,4 +50,22 @@ Name: "{group}\Désinstaller {#AppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
+; Installe WebView2 s'il manque (no-op s'il est déjà présent). Installation
+; par utilisateur quand l'installateur n'a pas les droits admin.
+Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"; \
+  StatusMsg: "Installation du composant d'affichage (Microsoft Edge WebView2)..."; \
+  Check: WebView2Missing; Flags: waituntilterminated
 Filename: "{app}\{#AppExeName}"; Description: "Lancer {#AppName}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+function WebView2Missing: Boolean;
+var
+  Value: String;
+  Found: Boolean;
+begin
+  Found :=
+    RegQueryStringValue(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}}', 'pv', Value) or
+    RegQueryStringValue(HKLM, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}}', 'pv', Value) or
+    RegQueryStringValue(HKCU, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}}', 'pv', Value);
+  Result := (not Found) or (Value = '') or (Value = '0.0.0.0');
+end;

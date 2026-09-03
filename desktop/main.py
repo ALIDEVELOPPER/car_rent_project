@@ -56,6 +56,44 @@ class DesktopApi:
             return {"ok": False, "error": str(exc)}
 
 
+def _webview2_runtime_present() -> bool:
+    """Le moteur d'affichage moderne (Microsoft Edge WebView2) est-il installé ?
+
+    Sur Windows, pywebview a besoin de ce composant pour afficher l'interface.
+    Il est préinstallé sur Windows 11 et sur les Windows 10 à jour, mais absent
+    de beaucoup de postes plus anciens : sans lui, la fenêtre reste blanche.
+    """
+    if not sys.platform.startswith("win"):
+        return True
+
+    import winreg
+
+    subkey = r"SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+    candidates = [
+        (winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY),
+        (winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY),
+        (winreg.HKEY_CURRENT_USER, 0),
+    ]
+    for root, access_flag in candidates:
+        try:
+            with winreg.OpenKey(root, subkey, 0, winreg.KEY_READ | access_flag) as key:
+                version, _ = winreg.QueryValueEx(key, "pv")
+                if version and version != "0.0.0.0":
+                    return True
+        except OSError:
+            continue
+    return False
+
+
+def _show_error(title: str, text: str) -> None:
+    if sys.platform.startswith("win"):
+        import ctypes
+
+        ctypes.windll.user32.MessageBoxW(0, text, title, 0x10)  # MB_ICONERROR
+    else:
+        print(f"{title}\n{text}", file=sys.stderr)
+
+
 def find_free_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
@@ -73,7 +111,21 @@ def wait_for_server(url: str, timeout: float = 10.0) -> None:
     raise RuntimeError("Le serveur backend n'a pas démarré à temps")
 
 
+WEBVIEW2_DOWNLOAD_URL = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"
+
+
 def main() -> None:
+    if not _webview2_runtime_present():
+        _show_error(
+            "Krilia — composant manquant",
+            "Krilia a besoin du composant « Microsoft Edge WebView2 » pour "
+            "afficher son interface.\n\n"
+            "Il est normalement installé automatiquement. S'il manque, "
+            "téléchargez-le gratuitement ici puis relancez Krilia :\n\n"
+            f"{WEBVIEW2_DOWNLOAD_URL}",
+        )
+        return
+
     installer_base_en_attente()
     app = create_app("production")
 
@@ -94,7 +146,20 @@ def main() -> None:
     webview.create_window(
         APP_TITLE, url, width=1400, height=900, min_size=(1024, 700), js_api=DesktopApi()
     )
-    webview.start()
+    # gui explicite : ne jamais retomber sur un moteur d'affichage ancien
+    # (qui laisserait l'interface à moitié vide).
+    gui = "edgechromium" if sys.platform.startswith("win") else None
+    try:
+        webview.start(gui=gui)
+    except Exception as exc:  # noqa: BLE001
+        _show_error(
+            "Krilia — affichage impossible",
+            "Krilia n'a pas pu ouvrir sa fenêtre.\n\n"
+            "Installez « Microsoft Edge WebView2 » puis relancez Krilia :\n"
+            f"{WEBVIEW2_DOWNLOAD_URL}\n\n"
+            f"Détail technique : {exc}",
+        )
+        raise
 
 
 if __name__ == "__main__":

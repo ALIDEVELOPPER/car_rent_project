@@ -35,7 +35,7 @@ if sys.platform.startswith("linux"):
         "PyQt5.QtPrintSupport",
     ]
 elif sys.platform == "win32":
-    hiddenimports += ["webview.platforms.edgechromium", "webview.platforms.winforms"]
+    hiddenimports += ["webview.platforms.edgechromium", "webview.platforms.winforms", "winreg"]
 elif sys.platform == "darwin":
     hiddenimports += ["webview.platforms.cocoa"]
 

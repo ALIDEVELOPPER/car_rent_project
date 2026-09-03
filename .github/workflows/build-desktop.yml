@@ -49,6 +49,13 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install innosetup --no-progress -y
 
+      - name: Télécharger le programme d'amorçage WebView2 (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" `
+            -OutFile "desktop/MicrosoftEdgeWebview2Setup.exe"
+
       - name: Construire l'installateur Windows (Inno Setup)
         if: runner.os == 'Windows'
         run: ISCC.exe desktop/installer.iss
